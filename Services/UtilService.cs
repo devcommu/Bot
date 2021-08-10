@@ -1,12 +1,9 @@
 ﻿using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DevCommuBot.Services
 {
@@ -16,6 +13,8 @@ namespace DevCommuBot.Services
         private readonly ILogger _logger;
 
         public const ulong GUILD_ID = 584987515388428300;
+
+        public const ulong ROLE_PROJECTS_ID = 874785049516605491;
         public UtilService(IServiceProvider services)
         {
             _client = services.GetRequiredService<DiscordSocketClient>();
@@ -24,5 +23,14 @@ namespace DevCommuBot.Services
 
         public SocketGuild GetGuild()
             => _client.Guilds.FirstOrDefault(g => g.Id == GUILD_ID);
+
+        public List<SocketGuildChannel> GetAllowedChannels()
+            => new()
+            {
+                _client.GetChannel(0) as SocketGuildChannel,
+            };
+
+        public SocketRole GetProjectsRole()
+            => GetGuild()?.GetRole(ROLE_PROJECTS_ID);
     }
 }

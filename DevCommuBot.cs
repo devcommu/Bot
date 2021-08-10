@@ -1,4 +1,5 @@
-﻿using DevCommuBot.Services;
+﻿using DevCommuBot.Data;
+using DevCommuBot.Services;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
@@ -41,7 +42,8 @@ namespace DevCommuBot
                 .AddSingleton<StartupService>()
                 .AddSingleton<LoggerService>()
                 .AddSingleton<UtilService>()
-                .AddSingleton<GuildService>();
+                .AddSingleton<GuildService>()
+                .AddDbContext<DataContext>();
             ConfigureServices(services);
             var serviceProvider = services.BuildServiceProvider();
 

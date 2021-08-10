@@ -35,10 +35,11 @@ namespace DevCommuBot.Services
         {
             if(arg is SocketSlashCommand command)
             {
+                //test as always
                 if(command.Data.Name == "points")
                 {
                     if (command.Data.Options is not null)
-                        command.RespondAsync("he has 0points");
+                        command.RespondAsync("he has 0 points");
                     else
                         command.RespondAsync("you have 0points");
                 }
@@ -71,16 +72,12 @@ namespace DevCommuBot.Services
                 };
                 try
                 {
-                    // Now that we have our builder, we can call the rest API to make our slash command.
                     await _client.Rest.CreateGuildCommand(guildCommand.Build(), UtilService.GUILD_ID);
                 }
                 catch (ApplicationCommandException exception)
                 {
-                    // If our command was invalid, we should catch an ApplicationCommandException. This exception contains the path of the error as well as the error message. You can serialize the Error field in the exception to get a visual of where your error is.
                     var json = JsonConvert.SerializeObject(exception.Error, Formatting.Indented);
-
-                    // You can send this error somewhere or just print it to the console, for this example we're just going to print it.
-                    Console.WriteLine(json);
+                    _logger.LogError(json);
                 }
             }
         }
