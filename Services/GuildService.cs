@@ -36,12 +36,60 @@ namespace DevCommuBot.Services
             if(arg is SocketSlashCommand command)
             {
                 //test as always
+                var member = command.User as SocketGuildUser;
                 if(command.Data.Name == "points")
                 {
                     if (command.Data.Options is not null)
                         command.RespondAsync("he has 0 points");
                     else
                         command.RespondAsync("you have 0points");
+                }
+                if(command.Data.Name == "joinrole")
+                {
+                    if (command.Data.Options.FirstOrDefault().Value.Equals("projects"))
+                    {
+                        //user chose to join "projets" role
+                        if(member.Roles.Any(r=>r.Id == UtilService.ROLE_PROJECTS_ID))
+                        {
+                            //user has already the role
+                            command.RespondAsync("Vous poddédez déjà ce role");
+                        }
+                        else
+                        {
+                            member.AddRoleAsync(_util.GetProjectsRole());
+                            command.RespondAsync("Vous venez de rejoindre le role Projects vous donnant accès au salon: <#874785010601832468>");
+                        }
+                    }
+                    else
+                    {
+                        //user chose to join "gaming" role
+                        if (member.Roles.Any(r => r.Id == UtilService.ROLE_GAMING_ID))
+                        {  
+                            //user has already the role
+                            command.RespondAsync("Vous possédez déjà ce role!");
+                        }
+                        else
+                        {
+                            member.AddRoleAsync(_util.GetGamingRole());
+                            command.RespondAsync("Vous venez de rejoindre le role Gaming vous donnant accès au salon: <#null>");
+                        }
+                    }
+                }
+                if(command.Data.Name == "hms")
+                {
+                    var compo = new ComponentBuilder()
+                        .WithButton("HostMyServers", null, ButtonStyle.Link, url: "https://www.hostmyservers.fr/")
+                        .Build();
+                    command.RespondAsync("hmm", component: compo);
+                    //test
+                    command.Channel.SendMessageAsync("Test?", component: compo);
+                }
+            }
+            if(arg is SocketMessageComponent component)
+            {
+                if (component.Data.CustomId == "button_hms")
+                {
+
                 }
             }
             return Task.CompletedTask;
@@ -51,12 +99,12 @@ namespace DevCommuBot.Services
         {
             _logger.LogInformation("Registering commands");
             var cmds = await _client.Rest.GetGuildApplicationCommands(UtilService.GUILD_ID);
-            if (cmds.FirstOrDefault(c=> c.ApplicationId == _client.CurrentUser.Id) is null)
+            if (cmds.FirstOrDefault(c=> c.ApplicationId == _client.CurrentUser.Id) is not null)
             {
                 //Register commands
-                var list = new List<SlashCommandOptionBuilder>()
+                List<SlashCommandOptionBuilder> listOptionUser = new()
                 {
-                    new SlashCommandOptionBuilder()
+                    new()
                     {
                         Name = "user",
                         Required = false,
@@ -64,15 +112,51 @@ namespace DevCommuBot.Services
                         Description = "User your want to see points"
                     }
                 };
-                SlashCommandBuilder guildCommand = new()
+                var listOptionJoin = new List<SlashCommandOptionBuilder>()
+                {
+                    new()
+                    {
+                        Name = "role",
+                        Required = true,
+                        Type = ApplicationCommandOptionType.String,
+                        Description = "Role you want to join",
+                        Choices = new()
+                        {
+                            new ApplicationCommandOptionChoiceProperties()
+                            {
+                                Name = "Project",
+                                Value = "projects"
+                            },
+                            new()
+                            {
+                                Name = "Gaming",
+                                Value = "gaming"
+                            }
+                        }
+                    }
+                };
+                SlashCommandBuilder pointsCommand = new()
                 {
                     Name = "points",
                     Description = "Get Your amount of points",
-                    Options = list,
+                    Options = listOptionUser,
+                };
+                SlashCommandBuilder joinroleCommand = new()
+                {
+                    Name = "joinrole",
+                    Description = "Join a role",
+                    Options = listOptionJoin,
+                };
+                SlashCommandBuilder hmsCommand = new()
+                {
+                    Name = "hms",
+                    Description = "Get information about our partner"
                 };
                 try
                 {
-                    await _client.Rest.CreateGuildCommand(guildCommand.Build(), UtilService.GUILD_ID);
+                    await _client.Rest.CreateGuildCommand(pointsCommand.Build(), UtilService.GUILD_ID);
+                    await _client.Rest.CreateGuildCommand(joinroleCommand.Build(), UtilService.GUILD_ID);
+                    await _client.Rest.CreateGuildCommand(hmsCommand.Build(), UtilService.GUILD_ID);
                 }
                 catch (ApplicationCommandException exception)
                 {
