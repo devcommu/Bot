@@ -8,9 +8,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http;
 using Serilog;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DevCommuBot
@@ -29,6 +26,9 @@ namespace DevCommuBot
                 {
                     LogLevel = Discord.LogSeverity.Verbose,
                     AlwaysDownloadUsers = true,
+                    AlwaysAcknowledgeInteractions = false,
+                    MessageCacheSize = 100,
+                    GatewayIntents = Discord.GatewayIntents.All
                 }))
                 .AddSingleton(config)
                 .AddSingleton(new CommandService(new()
