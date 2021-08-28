@@ -89,52 +89,57 @@ namespace DevCommuBot.Services
 
         private Task OnInteraction(SocketInteraction arg)
         {
-            if(arg is SocketSlashCommand command)
+            if (arg is SocketSlashCommand command)
+                HandleSlashCommand(command);
+            if(arg is SocketMessageComponent component)
             {
-                var member = command.User as SocketGuildUser;
+                //Button Integrations?
 
-                if(command.Data.Name == "points")
-                {
-                    //TODO: Use Database
+            }
+            return Task.CompletedTask;
+        }
+        private async Task HandleSlashCommand(SocketSlashCommand command)
+        {
+            var member = command.User as SocketGuildUser;
+            switch (command.Data.Name)
+            {
+                case "points":
                     if (command.Data.Options is not null)
-                        command.RespondAsync("he has 0 points");
+                        await command.RespondAsync("he has 0 points");
                     else
-                        command.RespondAsync("you have 0points");
-                }
-
-                if(command.Data.Name == "joinrole")
-                {
+                        await command.RespondAsync("you have 0points");
+                    break;
+                case "joinrole":
                     if (command.Data.Options.FirstOrDefault().Value.Equals("projects"))
                     {
                         //user chose to join "projets" role
-                        if(member.Roles.Any(r=>r.Id == UtilService.ROLE_PROJECTS_ID))
+                        if (member.Roles.Any(r => r.Id == UtilService.ROLE_PROJECTS_ID))
                         {
                             //user has already the role
-                            command.RespondAsync("Vous poddédez déjà ce role");
+                            await command.RespondAsync("Vous poddédez déjà ce role");
                         }
                         else
                         {
-                            member.AddRoleAsync(_util.GetProjectsRole());
-                            command.RespondAsync("Vous venez de rejoindre le role Projects vous donnant accès au salon: <#874785010601832468>");
+                            await member.AddRoleAsync(_util.GetProjectsRole());
+                            await command.RespondAsync("Vous venez de rejoindre le role Projects vous donnant accès au salon: <#874785010601832468>");
                         }
                     }
                     else
                     {
                         //user chose to join "gaming" role
                         if (member.Roles.Any(r => r.Id == UtilService.ROLE_GAMING_ID))
-                        {  
+                        {
                             //user has already the role
-                            command.RespondAsync("Vous possédez déjà ce role!");
+                            await command.RespondAsync("Vous possédez déjà ce role!");
                         }
                         else
                         {
-                            member.AddRoleAsync(_util.GetGamingRole());
-                            command.RespondAsync("Vous venez de rejoindre le role Gaming vous donnant accès au salon: <#null>");
+                            await member.AddRoleAsync(_util.GetGamingRole());
+                            await command.RespondAsync("Vous venez de rejoindre le role Gaming vous donnant accès au salon: <#null>");
                         }
                     }
-                }
-                if(command.Data.Name == "hms")
-                {
+                    break;
+                case "hms":
                     //Partnership information
                     var compo = new ComponentBuilder()
                         .WithButton("HostMyServers", null, ButtonStyle.Link, url: "https://www.hostmyservers.fr/")
@@ -148,26 +153,71 @@ namespace DevCommuBot.Services
                         .WithFooter("Partenaire depuis le 07/08/2021")
                         .Build();
                     //Why not emepheral?
-                    command.RespondAsync(embed: embedHms, component: compo);
-                }
-                if(command.Data.Name == "createrole")
-                {
-                    if(command.Channel.Id != UtilService.CHANNEL_BOOSTERS_ID)
+                    await command.RespondAsync(embed: embedHms, component: compo);
+                    break;
+                case "createrole":
+                    if (command.Channel.Id != UtilService.CHANNEL_BOOSTERS_ID)
                     {
-                        command.RespondAsync("You can not use this command here", ephemeral: true);
-                        return Task.CompletedTask;
+                        await command.RespondAsync("Vous ne pouvez pas utilisez cette commande ici", ephemeral: true);
+                        return;
                     }
+                    if (_util.HasCustomRole(member))
+                    {
+                        await command.RespondAsync("Vous possédez déjà un grade custom! La modification du grade n'est pas encore permise!", ephemeral: true);
+                        return;
+                    }
+                    var roleName = command.Data.Options.FirstOrDefault(op => op.Name == "rolename").Value as string;
+                    var color = command.Data.Options.FirstOrDefault(op => op.Name == "color").Value as string;
+                    //If user inserted an #
+                    color = color.Replace("#", "");
+                    if(_util.GetGuild().Roles.Any(r=>r.Name.ToLower() == roleName.ToLower()))
+                    {
+                        //AVOID USING everyone and here
+                        await command.RespondAsync("Le nom du rôle souhaité existe déjà");
+                        return;
+                    }
+                    if(int.TryParse(color, System.Globalization.NumberStyles.HexNumber, null, out int test))
+                    {
+                        var role = await _util.GetGuild().CreateRoleAsync(roleName, null, color: new Color((uint)test), false, null);
+                        await role.ModifyAsync(r =>
+                        {
+                            r.Position = _util.GetBoostersRole().Position + 1;
+                        });
+                        await member.AddRoleAsync(role);
+                        command.RespondAsync($"Vous venez de crée le role: {role.Mention}");
+                    }
+                    else
+                    {
+                        await command.RespondAsync("Merci de faire parvenir un hexadeciaml pour la couleur!");
+                    }
+                    break;
+                case "mute":
+                    if (member.GuildPermissions.KickMembers)
+                    {
+                        SocketGuildUser victim = command.Data.Options.FirstOrDefault(op => op.Name == "user").Value as SocketGuildUser;
+                        if(int.TryParse(command.Data.Options.FirstOrDefault(op => op.Name == "duration")?.Value as string, out int duration))
+                        {
+                            command.RespondAsync($"{victim} has been muted ", ephemeral: true);
+                        }
+                        else
+                        {
+                            command.RespondAsync($"An error has occured with duration ", ephemeral: true);
+                        }
+                        
+                    }
+                    await command.RespondAsync("Vous n'avez pas la permission d'éxectuer cette commande", ephemeral: true);
+                    break;
+                case "warn":
+                    if (member.GuildPermissions.Administrator)
+                    {
+                        SocketGuildUser victim = command.Data.Options.FirstOrDefault(op => op.Name == "user")?.Value as SocketGuildUser;
+                        string reason = command.Data.Options.FirstOrDefault(op => op.Name == "user").Value as string;
+                        command.RespondAsync("Warned..", ephemeral: true);
 
-                }
+                    }
+                    break;
             }
-            if(arg is SocketMessageComponent component)
-            {
-                //Button Integrations?
-
-            }
-            return Task.CompletedTask;
         }
-
         private async Task OnReady()
         {
             _logger.LogInformation("Registering commands");
@@ -225,6 +275,23 @@ namespace DevCommuBot.Services
                         Description = "Color of your role in hexadecimal",
                     }
                 };
+                var listOptionWarn = new List<SlashCommandOptionBuilder>()
+                {
+                    new()
+                    {
+                        Name = "user",
+                        Required = true,
+                        Type = ApplicationCommandOptionType.User,
+                        Description = "The user you want to warn",
+                    },
+                    new()
+                    {
+                        Name = "reason",
+                        Required = true,
+                        Type = ApplicationCommandOptionType.String,
+                        Description = "Reason of warn",
+                    }
+                };
                 SlashCommandBuilder pointsCommand = new()
                 {
                     Name = "points",
@@ -248,12 +315,42 @@ namespace DevCommuBot.Services
                     Description = "Create your own role!(boosters)",
                     Options = listOptionRole
                 };
+                SlashCommandBuilder warnCommand = new()
+                {
+                    Name = "warn",
+                    Description = "Warn an user",
+                    Options = listOptionWarn
+                };
+                SlashCommandBuilder muteCommand = new()
+                {
+                    Name = "mute",
+                    Description = "mute an user",
+                    Options = new()
+                    {
+                        new()
+                        {
+                            Name = "user",
+                            Required = true,
+                            Type = ApplicationCommandOptionType.User,
+                            Description = "User to be muted"
+                        },
+                        new()
+                        {
+                            Name = "duration",
+                            Required = true,
+                            Type = ApplicationCommandOptionType.Integer,
+                            Description = "Mute duration in seconds",
+                        }
+                    }
+                };
                 try
                 {
                     await _client.Rest.CreateGuildCommand(pointsCommand.Build(), UtilService.GUILD_ID);
                     await _client.Rest.CreateGuildCommand(joinroleCommand.Build(), UtilService.GUILD_ID);
                     await _client.Rest.CreateGuildCommand(hmsCommand.Build(), UtilService.GUILD_ID);
                     await _client.Rest.CreateGuildCommand(createRoleCommand.Build(), UtilService.GUILD_ID);
+                    await _client.Rest.CreateGuildCommand(warnCommand.Build(), UtilService.GUILD_ID);
+                    await _client.Rest.CreateGuildCommand(muteCommand.Build(), UtilService.GUILD_ID);
                 }
                 catch (ApplicationCommandException exception)
                 {
@@ -263,14 +360,16 @@ namespace DevCommuBot.Services
             }
         }
 
-        private Task OnUserLeft(SocketGuild arg)
+        private Task OnUserLeft(SocketGuild member)
         {
-            throw new NotImplementedException();
+            //zzzzzzzzzzzzzzz
+            return Task.CompletedTask;
         }
 
-        private Task OnUserJoin(SocketGuildUser arg)
+        private Task OnUserJoin(SocketGuildUser member)
         {
-            throw new NotImplementedException();
+            _util.GetWelcomeChannel().SendMessageAsync();
+            return Task.CompletedTask;
         }
     }
 }

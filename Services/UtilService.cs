@@ -17,6 +17,7 @@ namespace DevCommuBot.Services
 
         public const ulong CHANNEL_LOGS_ID = 875824516675305502;
         public const ulong CHANNEL_BOOSTERS_ID = 764467968490864691;
+        public const ulong CHANNEL_WELCOME_ID = 881262458398986280;
 
         public const ulong ROLE_PROJECTS_ID = 874785049516605491;
         public const ulong ROLE_GAMING_ID = 875757898087678034;
@@ -53,6 +54,9 @@ namespace DevCommuBot.Services
 
         public SocketTextChannel GetBoostersChannel()
             => _client.GetChannel(CHANNEL_BOOSTERS_ID) as SocketTextChannel;
+
+        public SocketTextChannel GetWelcomeChannel()
+            => _client.GetChannel(CHANNEL_WELCOME_ID) as SocketTextChannel;
 
         public void SendLog(string title, string description, SocketGuildUser author = null)
         {
