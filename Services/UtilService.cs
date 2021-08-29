@@ -25,6 +25,7 @@ namespace DevCommuBot.Services
 
         public readonly Color EmbedColor = new(19, 169, 185);
 
+        public readonly Dictionary<ulong, long> CreateroleCooldown = new();
         public UtilService(IServiceProvider services)
         {
             _client = services.GetRequiredService<DiscordSocketClient>();

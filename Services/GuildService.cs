@@ -180,23 +180,31 @@ namespace DevCommuBot.Services
                         .WithFooter("Partenaire depuis le 07/08/2021")
                         .Build();
                     //Why not emepheral?
-                    await command.RespondAsync(embed: embedHms, component: compo);
+                    _ = command.RespondAsync(embed: embedHms, component: compo);
                     break;
                 case "createrole":
                     if (command.Channel.Id != UtilService.CHANNEL_BOOSTERS_ID)
                     {
-                        await command.RespondAsync("Vous ne pouvez pas utilisez cette commande ici", ephemeral: true);
+                        _ = command.RespondAsync("Vous ne pouvez pas utilisez cette commande ici", ephemeral: true);
                         return;
+                    }
+                    if (_util.CreateroleCooldown.ContainsKey(member.Id))
+                    {
+                        //A cooldown entry exist for this user
+                        if(DateTimeOffset.Now.ToUnixTimeSeconds() < (_util.CreateroleCooldown[member.Id] + 60 * 5))
+                        {
+                            command.RespondAsync("Merci de respecter le cooldown de 5minutes!", ephemeral: true);
+                            return;
+                        }
                     }
                     var roleName = command.Data.Options.FirstOrDefault(op => op.Name == "rolename").Value as string;
                     var color = command.Data.Options.FirstOrDefault(op => op.Name == "color").Value as string;
                     //If user inserted an #
                     color = color.Replace("#", "");
-
-                    if(_util.GetGuild().Roles.Any(r=>r.Name.ToLower() == roleName.ToLower()))
+                    if(_util.GetGuild().Roles.Any(r=>r.Name.ToLower() == roleName.ToLower()) || (roleName.ToLower() is "everyone" or "here"))
                     {
-                        //AVOID USING everyone and here
-                        await command.RespondAsync("Le nom du rôle souhaité existe déjà");
+                        //AVOID FAKE MODS && everyone
+                        _ = command.RespondAsync("Le nom du rôle souhaité existe déjà");
                         return;
                     }
                     if(int.TryParse(color, System.Globalization.NumberStyles.HexNumber, null, out int finalColor))
@@ -210,23 +218,27 @@ namespace DevCommuBot.Services
                                 r.Color = new Color((uint)finalColor);
                                 r.Hoist = true;
                             });
-                            await command.RespondAsync($"Vous venez de mettre à jour votre rôle {memberRole.Mention}");
-                            return;
+                            _ = command.RespondAsync($"Vous venez de mettre à jour votre rôle {memberRole.Mention}");
                         }
-                        var role = await _util.GetGuild().CreateRoleAsync(roleName, null, color: new Color((uint)finalColor), true, new()
+                        else
                         {
-                            AuditLogReason = "Booster creation role",
-                        });
-                        await role.ModifyAsync(r =>
-                        {
-                            r.Position = _util.GetBoostersRole().Position + 1;
-                        });
-                        await member.AddRoleAsync(role);
-                        _ = command.RespondAsync($"Vous venez de crée le role: {role.Mention}");
+                            var role = await _util.GetGuild().CreateRoleAsync(roleName, null, color: new Color((uint)finalColor), true, new()
+                            {
+                                AuditLogReason = "Booster creation role",
+                            });
+                            await role.ModifyAsync(r =>
+                            {
+                                r.Position = _util.GetBoostersRole().Position + 1;
+                            });
+                            await member.AddRoleAsync(role);
+                            _ = command.RespondAsync($"Vous venez de crée le role: {role.Mention}");
+                        }
+                        _util.CreateroleCooldown[member.Id] = DateTimeOffset.Now.ToUnixTimeSeconds();
+                        return;
                     }
                     else
                     {
-                        await command.RespondAsync("Merci de faire parvenir un hexadeciaml pour la couleur!");
+                        _ = command.RespondAsync("Merci de faire parvenir un hexadeciaml pour la couleur!");
                     }
                     break;
                 case "mute":

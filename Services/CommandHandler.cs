@@ -30,7 +30,7 @@ namespace DevCommuBot.Services
             if (message.Source is not Discord.MessageSource.User)
                 return;
             int argPos = 0;
-
+            //Handle Command?
         }
 
         private async Task OnCommandExecuted(Discord.Optional<CommandInfo> arg1, ICommandContext arg2, IResult arg3)
