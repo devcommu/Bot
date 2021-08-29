@@ -17,7 +17,7 @@ namespace DevCommuBot
         private IConfigurationRoot config;
 
         public async Task StartAsync()
-        {
+        { 
             config = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile(path: "config.json").Build();
@@ -43,7 +43,8 @@ namespace DevCommuBot
                 .AddSingleton<LoggerService>()
                 .AddSingleton<UtilService>()
                 .AddSingleton<GuildService>()
-                .AddDbContext<DataContext>();
+                .AddDbContext<DataContext>()
+                .AddSingleton<DataService>();
             ConfigureServices(services);
             var serviceProvider = services.BuildServiceProvider();
 

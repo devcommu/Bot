@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using DevCommuBot.Data.Models.Users;
+using Discord;
 using Discord.Net;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
@@ -8,7 +9,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DevCommuBot.Services
@@ -19,12 +19,15 @@ namespace DevCommuBot.Services
         private readonly ILogger _logger;
         private readonly IConfigurationRoot _config;
         private readonly UtilService _util;
+        private readonly DataService _database;
         public GuildService(IServiceProvider services)
         {
             _config = services.GetRequiredService<IConfigurationRoot>();
             _client = services.GetRequiredService<DiscordSocketClient>();
             _logger = services.GetRequiredService<ILogger<GuildService>>();
             _util = services.GetRequiredService<UtilService>();
+            _database = services.GetRequiredService<DataService>();
+
             _client.UserJoined += OnUserJoin;
             _client.LeftGuild += OnUserLeft;
             _client.Ready += OnReady;
@@ -104,10 +107,34 @@ namespace DevCommuBot.Services
             switch (command.Data.Name)
             {
                 case "points":
-                    if (command.Data.Options is not null)
-                        await command.RespondAsync("he has 0 points");
+                    User? account;
+                    if(command.Data.Options is not null)
+                    {
+                        account = await _database.GetAccount((command.Data.Options.FirstOrDefault().Value as SocketGuildUser).Id);
+                        if (account is null)
+                        {
+                            await command.RespondAsync("This user doesn't own an account!");
+                        }
+                        else
+                        {
+                            await command.RespondAsync($"He has {account.Points} points!");
+                        }
+                    }
                     else
-                        await command.RespondAsync("you have 0points");
+                    {
+                        account = await _database.GetAccount(member.Id);
+                        if (account is null)
+                        {
+                            //Create account
+                            // Show message before processing creating account to avoid taking 1hour
+                            await command.RespondAsync("Your account has been created");
+                            await _database.CreateAccount(member.Id);
+                        }
+                        else
+                        {
+                            await command.RespondAsync($"You have {account.Points} points!");
+                        }
+                    }
                     break;
                 case "joinrole":
                     if (command.Data.Options.FirstOrDefault().Value.Equals("projects"))
@@ -116,7 +143,7 @@ namespace DevCommuBot.Services
                         if (member.Roles.Any(r => r.Id == UtilService.ROLE_PROJECTS_ID))
                         {
                             //user has already the role
-                            await command.RespondAsync("Vous poddédez déjà ce role");
+                            await command.RespondAsync("Vous possédez déjà ce role");
                         }
                         else
                         {
@@ -161,30 +188,41 @@ namespace DevCommuBot.Services
                         await command.RespondAsync("Vous ne pouvez pas utilisez cette commande ici", ephemeral: true);
                         return;
                     }
-                    if (_util.HasCustomRole(member))
-                    {
-                        await command.RespondAsync("Vous possédez déjà un grade custom! La modification du grade n'est pas encore permise!", ephemeral: true);
-                        return;
-                    }
                     var roleName = command.Data.Options.FirstOrDefault(op => op.Name == "rolename").Value as string;
                     var color = command.Data.Options.FirstOrDefault(op => op.Name == "color").Value as string;
                     //If user inserted an #
                     color = color.Replace("#", "");
+
                     if(_util.GetGuild().Roles.Any(r=>r.Name.ToLower() == roleName.ToLower()))
                     {
                         //AVOID USING everyone and here
                         await command.RespondAsync("Le nom du rôle souhaité existe déjà");
                         return;
                     }
-                    if(int.TryParse(color, System.Globalization.NumberStyles.HexNumber, null, out int test))
+                    if(int.TryParse(color, System.Globalization.NumberStyles.HexNumber, null, out int finalColor))
                     {
-                        var role = await _util.GetGuild().CreateRoleAsync(roleName, null, color: new Color((uint)test), false, null);
+                        if (_util.HasCustomRole(member))
+                        {
+                            var memberRole = _util.GetCustomRole(member);
+                            await memberRole.ModifyAsync(r =>
+                            {
+                                r.Name = roleName;
+                                r.Color = new Color((uint)finalColor);
+                                r.Hoist = true;
+                            });
+                            await command.RespondAsync($"Vous venez de mettre à jour votre rôle {memberRole.Mention}");
+                            return;
+                        }
+                        var role = await _util.GetGuild().CreateRoleAsync(roleName, null, color: new Color((uint)finalColor), true, new()
+                        {
+                            AuditLogReason = "Booster creation role",
+                        });
                         await role.ModifyAsync(r =>
                         {
                             r.Position = _util.GetBoostersRole().Position + 1;
                         });
                         await member.AddRoleAsync(role);
-                        command.RespondAsync($"Vous venez de crée le role: {role.Mention}");
+                        _ = command.RespondAsync($"Vous venez de crée le role: {role.Mention}");
                     }
                     else
                     {
@@ -197,11 +235,11 @@ namespace DevCommuBot.Services
                         SocketGuildUser victim = command.Data.Options.FirstOrDefault(op => op.Name == "user").Value as SocketGuildUser;
                         if(int.TryParse(command.Data.Options.FirstOrDefault(op => op.Name == "duration")?.Value as string, out int duration))
                         {
-                            command.RespondAsync($"{victim} has been muted ", ephemeral: true);
+                            _ = command.RespondAsync($"{victim} has been muted ", ephemeral: true);
                         }
                         else
                         {
-                            command.RespondAsync($"An error has occured with duration ", ephemeral: true);
+                            _ = command.RespondAsync($"An error has occured with duration ", ephemeral: true);
                         }
                         
                     }
@@ -212,7 +250,7 @@ namespace DevCommuBot.Services
                     {
                         SocketGuildUser victim = command.Data.Options.FirstOrDefault(op => op.Name == "user")?.Value as SocketGuildUser;
                         string reason = command.Data.Options.FirstOrDefault(op => op.Name == "user").Value as string;
-                        command.RespondAsync("Warned..", ephemeral: true);
+                        _ = command.RespondAsync("Warned..", ephemeral: true);
 
                     }
                     break;
@@ -349,8 +387,9 @@ namespace DevCommuBot.Services
                     await _client.Rest.CreateGuildCommand(joinroleCommand.Build(), UtilService.GUILD_ID);
                     await _client.Rest.CreateGuildCommand(hmsCommand.Build(), UtilService.GUILD_ID);
                     await _client.Rest.CreateGuildCommand(createRoleCommand.Build(), UtilService.GUILD_ID);
-                    await _client.Rest.CreateGuildCommand(warnCommand.Build(), UtilService.GUILD_ID);
-                    await _client.Rest.CreateGuildCommand(muteCommand.Build(), UtilService.GUILD_ID);
+                    //Waiting 20secs for registering 2commands zzzzzzzzzzzzzzzz
+                    _ =  _client.Rest.CreateGuildCommand(warnCommand.Build(), UtilService.GUILD_ID);
+                    _ =  _client.Rest.CreateGuildCommand(muteCommand.Build(), UtilService.GUILD_ID);
                 }
                 catch (ApplicationCommandException exception)
                 {
@@ -368,7 +407,13 @@ namespace DevCommuBot.Services
 
         private Task OnUserJoin(SocketGuildUser member)
         {
-            _util.GetWelcomeChannel().SendMessageAsync();
+            var embedMessage = new EmbedBuilder()
+                .WithAuthor(member)
+                .WithColor(_util.EmbedColor)
+                .WithDescription("Welcome!")
+                .WithFooter($"We are now {member.Guild.MemberCount} members.")
+                .Build();
+            _util.GetWelcomeChannel().SendMessageAsync(embed: embedMessage);
             return Task.CompletedTask;
         }
     }

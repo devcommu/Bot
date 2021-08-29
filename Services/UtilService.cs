@@ -73,5 +73,7 @@ namespace DevCommuBot.Services
 
         public bool HasCustomRole(SocketGuildUser member)
             => member.Roles.Any(role => role.Position > GetBoostersRole().Position) && member.GuildPermissions.Administrator is not true;
+        public SocketRole? GetCustomRole(SocketGuildUser member)
+            => member.GuildPermissions.Administrator ? null : member.Roles.FirstOrDefault(role => role.Position > GetBoostersRole().Position);
     }
 }
