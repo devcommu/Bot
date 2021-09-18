@@ -44,7 +44,8 @@ namespace DevCommuBot
                 .AddSingleton<UtilService>()
                 .AddSingleton<GuildService>()
                 .AddDbContext<DataContext>()
-                .AddSingleton<DataService>();
+                .AddSingleton<DataService>()
+                .AddSingleton<PointService>();
             ConfigureServices(services);
             var serviceProvider = services.BuildServiceProvider();
 

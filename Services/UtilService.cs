@@ -38,6 +38,15 @@ namespace DevCommuBot.Services
         public List<SocketGuildChannel> GetAllowedChannels()
             => new()
             {
+                _client.GetChannel(744957552143368243) as SocketGuildChannel, //PHP
+                _client.GetChannel(744999327608602665) as SocketGuildChannel, //javascript
+                _client.GetChannel(744999373691420823) as SocketGuildChannel, //java
+                _client.GetChannel(745177811672760470) as SocketGuildChannel, //html
+                _client.GetChannel(788071924453867561) as SocketGuildChannel, //go
+                _client.GetChannel(777236245322662019) as SocketGuildChannel, //python
+                _client.GetChannel(784890400234143804) as SocketGuildChannel, //others
+                _client.GetChannel(0) as SocketGuildChannel,
+                _client.GetChannel(0) as SocketGuildChannel,
                 _client.GetChannel(0) as SocketGuildChannel,
             };
 

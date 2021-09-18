@@ -1,4 +1,5 @@
 ﻿using DevCommuBot.Data.Models.Users;
+using DevCommuBot.Helpers;
 using Discord;
 using Discord.Net;
 using Discord.WebSocket;
@@ -9,6 +10,9 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace DevCommuBot.Services
@@ -19,6 +23,7 @@ namespace DevCommuBot.Services
         private readonly ILogger _logger;
         private readonly IConfigurationRoot _config;
         private readonly UtilService _util;
+        private readonly PointService _pointService;
         private readonly DataService _database;
         public GuildService(IServiceProvider services)
         {
@@ -27,12 +32,26 @@ namespace DevCommuBot.Services
             _logger = services.GetRequiredService<ILogger<GuildService>>();
             _util = services.GetRequiredService<UtilService>();
             _database = services.GetRequiredService<DataService>();
+            _pointService = services.GetRequiredService<PointService>();
 
             _client.UserJoined += OnUserJoin;
             _client.LeftGuild += OnUserLeft;
             _client.Ready += OnReady;
             _client.InteractionCreated += OnInteraction;
             _client.GuildMemberUpdated += OnGuildUpdate;
+            _client.MessageReceived += OnMessageReceive;
+        }
+
+        private Task OnMessageReceive(SocketMessage socketMessage)
+        {
+            if (socketMessage is not SocketUserMessage message)
+                return Task.CompletedTask;
+            if (message.Source is not MessageSource.User)
+                return Task.CompletedTask;
+            /*if (_util.GetAllowedChannels().Exists(c => c is not null and c.Id == message.Channel.Id) is false)
+                return Task.CompletedTask;*/
+            _pointService.HandleMessage(message);
+            return Task.CompletedTask;
         }
 
         private async Task OnGuildUpdate(Cacheable<SocketGuildUser, ulong> cachedMember, SocketGuildUser member)
@@ -83,7 +102,7 @@ namespace DevCommuBot.Services
                             .WithDescription("> **Merci d'avoir booster!!!**\nEn boostant vous avez accès à la commande `/createrole` vous permettant ainsi de crée votre propre role")
                             .WithCurrentTimestamp()
                             .Build();
-                        _util.GetBoostersChannel().SendMessageAsync(embed: embed);
+                        _util.GetBoostersChannel().SendMessageAsync(text: member.Mention, embed: embed);
                     }
                 }
             }
@@ -183,6 +202,7 @@ namespace DevCommuBot.Services
                     _ = command.RespondAsync(embed: embedHms, component: compo);
                     break;
                 case "createrole":
+                    _logger.LogDebug("CreateRole called");
                     if (command.Channel.Id != UtilService.CHANNEL_BOOSTERS_ID)
                     {
                         _ = command.RespondAsync("Vous ne pouvez pas utilisez cette commande ici", ephemeral: true);
@@ -199,6 +219,7 @@ namespace DevCommuBot.Services
                     }
                     var roleName = command.Data.Options.FirstOrDefault(op => op.Name == "rolename").Value as string;
                     var color = command.Data.Options.FirstOrDefault(op => op.Name == "color").Value as string;
+                    var iconUrl = command.Data.Options.FirstOrDefault(op => op.Name == "iconurl").Value as string;
                     //If user inserted an #
                     color = color.Replace("#", "");
                     if(_util.GetGuild().Roles.Any(r=>r.Name.ToLower() == roleName.ToLower()) || (roleName.ToLower() is "everyone" or "here"))
@@ -209,6 +230,7 @@ namespace DevCommuBot.Services
                     }
                     if(int.TryParse(color, System.Globalization.NumberStyles.HexNumber, null, out int finalColor))
                     {
+                        _logger.LogDebug("Create role executed");
                         if (_util.HasCustomRole(member))
                         {
                             var memberRole = _util.GetCustomRole(member);
@@ -218,6 +240,19 @@ namespace DevCommuBot.Services
                                 r.Color = new Color((uint)finalColor);
                                 r.Hoist = true;
                             });
+                            if (!string.IsNullOrEmpty(iconUrl))
+                            {
+                                // S/O King
+                                var base64 = ImageHelper.ConvertImageURLToBase64(iconUrl);
+                                if (base64 != null)
+                                {
+                                    using HttpClient Client = new();
+                                    Client.DefaultRequestHeaders.Add("Authorization", $"Bot {_config["token"]}");
+                                    var content = new StringContent($"{{\"icon\": \"data:image/jpeg;base64, {base64}\"}}", Encoding.UTF8, "application/json");
+                                    var resp = await Client.PatchAsync($"https://discord.com/api/v9/guilds/584987515388428300/roles/{memberRole.Id}", content);
+                                    _logger.LogDebug(resp.StatusCode.ToString());
+                                }
+                            }
                             _ = command.RespondAsync($"Vous venez de mettre à jour votre rôle {memberRole.Mention}");
                         }
                         else
@@ -231,6 +266,19 @@ namespace DevCommuBot.Services
                                 r.Position = _util.GetBoostersRole().Position + 1;
                             });
                             await member.AddRoleAsync(role);
+                            if (!string.IsNullOrEmpty(iconUrl))
+                            {
+                                // S/O King
+                                var base64 = ImageHelper.ConvertImageURLToBase64(iconUrl);
+                                if (base64 != null)
+                                {
+                                    using HttpClient Client = new();
+                                    Client.DefaultRequestHeaders.Add("Authorization", $"Bot {_config["token"]}");
+                                    var content = new StringContent($"{{\"icon\": \"data:image/jpeg;base64, {base64}\"}}", Encoding.UTF8, "application/json");
+                                    var resp = await Client.PatchAsync($"https://discord.com/api/v9/guilds/584987515388428300/roles/{role.Id}", content);
+                                    _logger.LogDebug(resp.StatusCode.ToString());
+                                }
+                            }
                             _ = command.RespondAsync($"Vous venez de crée le role: {role.Mention}");
                         }
                         _util.CreateroleCooldown[member.Id] = DateTimeOffset.Now.ToUnixTimeSeconds();
@@ -323,6 +371,13 @@ namespace DevCommuBot.Services
                         Required = true,
                         Type = ApplicationCommandOptionType.String,
                         Description = "Color of your role in hexadecimal",
+                    },
+                    new()
+                    {
+                        Name = "iconurl",
+                        Required = false,
+                        Type = ApplicationCommandOptionType.String,
+                        Description = "Icon's url"
                     }
                 };
                 var listOptionWarn = new List<SlashCommandOptionBuilder>()
