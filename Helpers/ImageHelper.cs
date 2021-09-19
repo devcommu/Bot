@@ -40,8 +40,9 @@ namespace DevCommuBot.Helpers
 				stream.Close();
 				response.Close();
 			}
-			catch (Exception)
+			catch (Exception e)
             {
+				Console.WriteLine(e.Message);
 				buf = null;
 			}
 

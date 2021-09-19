@@ -211,7 +211,7 @@ namespace DevCommuBot.Services
                     if (_util.CreateroleCooldown.ContainsKey(member.Id))
                     {
                         //A cooldown entry exist for this user
-                        if(DateTimeOffset.Now.ToUnixTimeSeconds() < (_util.CreateroleCooldown[member.Id] + 60 * 5))
+                        if(DateTimeOffset.Now.ToUnixTimeSeconds() < (_util.CreateroleCooldown[member.Id] + 60 * 3))
                         {
                             command.RespondAsync("Merci de respecter le cooldown de 5minutes!", ephemeral: true);
                             return;
@@ -219,15 +219,9 @@ namespace DevCommuBot.Services
                     }
                     var roleName = command.Data.Options.FirstOrDefault(op => op.Name == "rolename").Value as string;
                     var color = command.Data.Options.FirstOrDefault(op => op.Name == "color").Value as string;
-                    var iconUrl = command.Data.Options.FirstOrDefault(op => op.Name == "iconurl").Value as string;
+                    var iconUrl = command.Data.Options.FirstOrDefault(op => op.Name == "iconurl")?.Value as string;
                     //If user inserted an #
                     color = color.Replace("#", "");
-                    if(_util.GetGuild().Roles.Any(r=>r.Name.ToLower() == roleName.ToLower()) || (roleName.ToLower() is "everyone" or "here"))
-                    {
-                        //AVOID FAKE MODS && everyone
-                        _ = command.RespondAsync("Le nom du rôle souhaité existe déjà");
-                        return;
-                    }
                     if(int.TryParse(color, System.Globalization.NumberStyles.HexNumber, null, out int finalColor))
                     {
                         _logger.LogDebug("Create role executed");
@@ -257,6 +251,12 @@ namespace DevCommuBot.Services
                         }
                         else
                         {
+                            if (_util.GetGuild().Roles.Any(r => r.Name.ToLower() == roleName.ToLower()) || (roleName.ToLower() is "everyone" or "here"))
+                            {
+                                //AVOID FAKE MODS && everyone
+                                _ = command.RespondAsync("Le nom du rôle souhaité existe déjà");
+                                return;
+                            }
                             var role = await _util.GetGuild().CreateRoleAsync(roleName, null, color: new Color((uint)finalColor), true, new()
                             {
                                 AuditLogReason = "Booster creation role",
