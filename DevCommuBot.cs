@@ -26,7 +26,6 @@ namespace DevCommuBot
                 {
                     LogLevel = Discord.LogSeverity.Verbose,
                     AlwaysDownloadUsers = true,
-                    AlwaysAcknowledgeInteractions = false,
                     MessageCacheSize = 100,
                     GatewayIntents = Discord.GatewayIntents.All
                 }))

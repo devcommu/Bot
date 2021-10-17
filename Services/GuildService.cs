@@ -13,6 +13,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace DevCommuBot.Services
@@ -314,6 +315,104 @@ namespace DevCommuBot.Services
 
                     }
                     break;
+                case "gitpreview":
+                    //I litteraly translated this js part to c#
+                    //https://github.com/HimbeersaftLP/MagicalHourglass/blob/master/bot.js
+                    // s/o Himbeersaft i guess
+                    string url = command.Data.Options.FirstOrDefault(st => st.Name == "url")?.Value as string;
+                    Regex regex = new(@"http(?:s|):\/\/github\.com\/(.*?\/.*?\/)blob\/(.*?\/.*?)#L([0-9]+)-?L?([0-9]+)?");
+                    Regex FileEndRegex = new(@".*\.([a-zA-Z0-9]*)");
+                    if (regex.IsMatch(url))
+                    {
+                        var match = regex.Match(url);
+                        _logger.LogDebug($"Caught {match.Groups.Count}");
+                        if(!int.TryParse(match.Groups[3].Value, out int lineAsked))
+                        {
+                            _logger.LogDebug($"le nombre: {match.Groups[3].Value} n'est pas reconnu comme un nombre");
+                            await command.RespondAsync("Une erreur est survenue :(");
+                            return;
+                        }
+                        int lineTo = -5;
+                        if (match.Groups.Count > 5)
+                        {
+                            if(!int.TryParse(match.Groups[5].Value, out lineTo))
+                            {
+                                _logger.LogDebug($"le nombre: {match.Groups[5].Value} n'est pas reconnu comme un nombre");
+                                await command.RespondAsync("Une erreur est survenue :(");
+
+                            }
+                        }
+                        await command.RespondAsync("Searching Code!!");
+                        using HttpClient httpClient = new();
+                        var githubUrl = $"https://raw.githubusercontent.com/{match.Groups[1]}{match.Groups[2]}";
+                        var response = await httpClient.GetAsync(githubUrl);
+                        var originalResponse = await command.GetOriginalResponseAsync();
+                        _logger.LogDebug($"Pour: {lineAsked} : {response.StatusCode}");
+                        if (response.StatusCode == HttpStatusCode.OK)
+                        {
+                            var content = await response.Content.ReadAsStringAsync();
+                            var lines = content.Split("\n");
+                            _logger.LogDebug($"Vérification valeur lineAsked");
+                            if (lineAsked> lines.Length || lineAsked<0)
+                            {
+                                _logger.LogDebug($"Invalid lineFrom gave {lineAsked}");
+                                await originalResponse.ModifyAsync(m=>
+                                {
+                                    m.Content = ":robot: Ligne Introuvable!";
+                                });
+                                return;
+                            }
+                            if(lineTo == -5)
+                            {
+                                //Didnt ask to reach lineTo
+                                int from = lineAsked - 5;
+                                int to = lineAsked + 5;
+                                var langMatch = FileEndRegex.Match(match.Groups[2].Value);
+                                var lang = langMatch.Groups[1];
+                                var cleanFileName = match.Groups[2].Value.Replace(@"\?.+", "");
+                                var msg = $"Lignes {from} - {to} de {cleanFileName}\n```{lang}\n";
+                                for(int i = from; i<=to; i++)
+                                {
+                                    msg += $"{lines[i]}\n";
+                                }
+                                msg += "\n```";
+                                await originalResponse.ModifyAsync(m =>
+                                {
+                                    m.Content = msg;
+                                });
+                                _logger.LogDebug($"Matched {lang}");
+
+                            }
+                            else
+                            {
+                                if (lineTo > lines.Length || lineTo < 0 || lineTo < lineAsked)
+                                {
+                                    _logger.LogDebug($"Invalid lineTo gave {lineTo}");
+                                    await originalResponse.ModifyAsync(m =>
+                                    {
+                                        m.Content = ":robot: Ligne Introuvable!";
+                                    });
+                                    return;
+                                }
+                                await originalResponse.ModifyAsync(m =>
+                                {
+                                    m.Content = ":robot: On Dort!";
+                                });
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            await originalResponse.ModifyAsync(m =>
+                            {
+                                m.Content = ":robot: Impossible d'atteindre github";
+                            });
+                            _logger.LogDebug($"Unable to reach host: {githubUrl}");
+                        }
+                    }
+                    else
+                        _ = command.RespondAsync($"Il faut préciser une url suivant ce regex: `{regex}`");
+                    break;
             }
         }
         private async Task OnReady()
@@ -448,12 +547,30 @@ namespace DevCommuBot.Services
                         }
                     }
                 };
+                SlashCommandBuilder gitPreviewCommand = new()
+                {
+                    Name = "gitpreview",
+                    Description = "Preview a code",
+                    Options = new()
+                    {
+                        new()
+                        {
+                            Name = "url",
+                            Required = true,
+                            Type = ApplicationCommandOptionType.String,
+                            Description = "repo link"
+                        }
+                    }
+                };
                 try
                 {
                     await _client.Rest.CreateGuildCommand(pointsCommand.Build(), UtilService.GUILD_ID);
                     await _client.Rest.CreateGuildCommand(joinroleCommand.Build(), UtilService.GUILD_ID);
                     await _client.Rest.CreateGuildCommand(hmsCommand.Build(), UtilService.GUILD_ID);
                     await _client.Rest.CreateGuildCommand(createRoleCommand.Build(), UtilService.GUILD_ID);
+                    await _client.Rest.CreateGuildCommand(muteCommand.Build(), UtilService.GUILD_ID);
+                    await _client.Rest.CreateGuildCommand(warnCommand.Build(), UtilService.GUILD_ID);
+                    await _client.Rest.CreateGuildCommand(gitPreviewCommand.Build(), UtilService.GUILD_ID);
                     //Waiting 20secs for registering 2commands zzzzzzzzzzzzzzzz
                     _ =  _client.Rest.CreateGuildCommand(warnCommand.Build(), UtilService.GUILD_ID);
                     _ =  _client.Rest.CreateGuildCommand(muteCommand.Build(), UtilService.GUILD_ID);
