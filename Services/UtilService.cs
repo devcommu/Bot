@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace DevCommuBot.Services
 {
-    internal class UtilService
+    public class UtilService
     {
         private readonly DiscordSocketClient _client;
         private readonly ILogger _logger;

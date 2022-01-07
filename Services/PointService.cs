@@ -15,7 +15,7 @@ namespace DevCommuBot.Services
         private readonly ILogger _logger;
         private readonly UtilService _util;
         private readonly DataService _database;
-
+        private readonly Dictionary<ulong, ulong> CoolDown = new();
         private readonly Dictionary<ulong, long> MessageCooldown = new();
         public PointService(IServiceProvider services)
         {
@@ -27,14 +27,39 @@ namespace DevCommuBot.Services
 
         public async void HandleMessage(SocketUserMessage message)
         {
-
+            if (IsValid(message))
+            {
+                
+            }
+            else
+            {
+                return;
+            }
         }
 
+        public bool IsValid(SocketUserMessage msg)
+        {
+            if (!_util.GetAllowedChannels().Contains(msg.Channel as SocketGuildChannel))
+                return false;
+            if (ContainsBadWords(msg.Content))
+                return false;
+            return true;
+        }
         public bool ContainsBadWords(string message)
         {
-            return false;
+            var messArray = message.Split(' ');
+            bool found = false;
+            List<string> badwords = GetBadWords();
+            foreach(var mess in messArray)
+            {
+                if (badwords.Contains(mess))
+                {
+                    found = true;
+                }
+            }
+            return found;
         }
-        public List<string> GetBadWords()
+        public static List<string> GetBadWords()
         {
             return File.ReadAllLines("badwords.txt").ToList();
         }

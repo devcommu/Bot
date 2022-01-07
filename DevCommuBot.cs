@@ -1,6 +1,7 @@
 ﻿using DevCommuBot.Data;
 using DevCommuBot.Services;
 using Discord.Commands;
+using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,7 +33,7 @@ namespace DevCommuBot
                 .AddSingleton(config)
                 .AddSingleton(new CommandService(new()
                 {
-                    DefaultRunMode = RunMode.Async,
+                    DefaultRunMode = Discord.Commands.RunMode.Async,
                     LogLevel = Discord.LogSeverity.Verbose,
                     CaseSensitiveCommands = false,
                     ThrowOnError = false,
@@ -44,20 +45,18 @@ namespace DevCommuBot
                 .AddSingleton<GuildService>()
                 .AddDbContext<DataContext>()
                 .AddSingleton<DataService>()
-                .AddSingleton<PointService>();
+                .AddSingleton<PointService>()
+                .AddSingleton<InteractionService>();
             ConfigureServices(services);
             var serviceProvider = services.BuildServiceProvider();
 
-            //serviceProvider.GetRequiredService<LoggerService>();
+            serviceProvider.GetRequiredService<LoggerService>();
 
             //Start bot
             await serviceProvider.GetRequiredService<StartupService>().StartAsync();
-
             serviceProvider.GetRequiredService<CommandHandler>();
-            serviceProvider.GetRequiredService<LoggerService>();
 
             serviceProvider.GetRequiredService<GuildService>();
-            //serviceProvider.GetRequiredService<GuildService>();
             await Task.Delay(-1);
 
         }

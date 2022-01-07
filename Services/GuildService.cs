@@ -1,20 +1,13 @@
-﻿using DevCommuBot.Data.Models.Users;
-using DevCommuBot.Helpers;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+
 using Discord;
-using Discord.Net;
 using Discord.WebSocket;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace DevCommuBot.Services
 {
@@ -26,6 +19,7 @@ namespace DevCommuBot.Services
         private readonly UtilService _util;
         private readonly PointService _pointService;
         private readonly DataService _database;
+
         public GuildService(IServiceProvider services)
         {
             _config = services.GetRequiredService<IConfigurationRoot>();
@@ -37,8 +31,8 @@ namespace DevCommuBot.Services
 
             _client.UserJoined += OnUserJoin;
             _client.LeftGuild += OnUserLeft;
-            _client.Ready += OnReady;
-            _client.InteractionCreated += OnInteraction;
+            /*_client.Ready += OnReady;
+            _client.InteractionCreated += OnInteraction;*/
             _client.GuildMemberUpdated += OnGuildUpdate;
             _client.MessageReceived += OnMessageReceive;
         }
@@ -59,15 +53,15 @@ namespace DevCommuBot.Services
         {
             //Boost tracker
             SocketGuildUser oldMember = cachedMember.Value ?? await cachedMember.DownloadAsync();
-            if(oldMember.Roles.Count != member.Roles.Count)
+            if (oldMember.Roles.Count != member.Roles.Count)
             {
                 //Roles Moved
                 var added = member.Roles.Except(oldMember.Roles).ToList();
                 var removed = oldMember.Roles.Except(member.Roles).ToList();
-                if(removed.Count is not 0)
+                if (removed.Count is not 0)
                 {
                     //A roles have been removed to member
-                    if(removed.Any(r=> r.Id == UtilService.ROLE_BOOSTERS_ID))
+                    if (removed.Any(r => r.Id == UtilService.ROLE_BOOSTERS_ID))
                     {
                         //user is not boosting any more
                         var roles = "";
@@ -88,12 +82,11 @@ namespace DevCommuBot.Services
                             _util.SendLog($"Removed CustomRole to {member}", $"Role: {customRole}\n Cause: No more boosting!", member);
                             //TODO: Remove Role!
                         }
-
                     }
                 }
-                if(added.Count is not 0)
+                if (added.Count is not 0)
                 {
-                    if(added.Any(r=> r.Id == UtilService.ROLE_BOOSTERS_ID))
+                    if (added.Any(r => r.Id == UtilService.ROLE_BOOSTERS_ID))
                     {
                         //User has boosted!
                         var embed = new EmbedBuilder()
@@ -114,20 +107,20 @@ namespace DevCommuBot.Services
         {
             if (arg is SocketSlashCommand command)
                 HandleSlashCommand(command);
-            if(arg is SocketMessageComponent component)
+            if (arg is SocketMessageComponent component)
             {
                 //Button Integrations?
-
             }
             return Task.CompletedTask;
         }
+
         private async Task HandleSlashCommand(SocketSlashCommand command)
         {
             var member = command.User as SocketGuildUser;
             switch (command.Data.Name)
             {
                 case "points":
-                    User? account;
+                    /*User? account;
                     if(command.Data.Options is not null)
                     {
                         account = await _database.GetAccount((command.Data.Options.FirstOrDefault().Value as SocketGuildUser).Id);
@@ -154,8 +147,9 @@ namespace DevCommuBot.Services
                         {
                             await command.RespondAsync($"You have {account.Points} points!");
                         }
-                    }
+                    }*/
                     break;
+                //Replace by message in rules?
                 case "joinrole":
                     if (command.Data.Options.FirstOrDefault().Value.Equals("projects"))
                     {
@@ -186,9 +180,10 @@ namespace DevCommuBot.Services
                         }
                     }
                     break;
+
                 case "hms":
                     //Partnership information
-                    var compo = new ComponentBuilder()
+                    /*var compo = new ComponentBuilder()
                         .WithButton("HostMyServers", null, ButtonStyle.Link, url: "https://www.hostmyservers.fr/")
                         .Build();
                     var embedHms = new EmbedBuilder()
@@ -200,10 +195,11 @@ namespace DevCommuBot.Services
                         .WithFooter("Partenaire depuis le 07/08/2021")
                         .Build();
                     //Why not emepheral?
-                    _ = command.RespondAsync(embed: embedHms, component: compo);
+                    _ = command.RespondAsync(embed: embedHms, component: compo);*/
                     break;
+
                 case "createrole":
-                    _logger.LogDebug("CreateRole called");
+                    /*_logger.LogDebug("CreateRole called");
                     if (command.Channel.Id != UtilService.CHANNEL_BOOSTERS_ID)
                     {
                         _ = command.RespondAsync("Vous ne pouvez pas utilisez cette commande ici", ephemeral: true);
@@ -288,13 +284,14 @@ namespace DevCommuBot.Services
                     else
                     {
                         _ = command.RespondAsync("Merci de faire parvenir un hexadeciaml pour la couleur!");
-                    }
+                    }*/
                     break;
+
                 case "mute":
                     if (member.GuildPermissions.KickMembers)
                     {
                         SocketGuildUser victim = command.Data.Options.FirstOrDefault(op => op.Name == "user").Value as SocketGuildUser;
-                        if(int.TryParse(command.Data.Options.FirstOrDefault(op => op.Name == "duration")?.Value as string, out int duration))
+                        if (int.TryParse(command.Data.Options.FirstOrDefault(op => op.Name == "duration")?.Value as string, out int duration))
                         {
                             _ = command.RespondAsync($"{victim} has been muted ", ephemeral: true);
                         }
@@ -302,21 +299,21 @@ namespace DevCommuBot.Services
                         {
                             _ = command.RespondAsync($"An error has occured with duration ", ephemeral: true);
                         }
-                        
                     }
                     await command.RespondAsync("Vous n'avez pas la permission d'éxectuer cette commande", ephemeral: true);
                     break;
+
                 case "warn":
                     if (member.GuildPermissions.Administrator)
                     {
                         SocketGuildUser victim = command.Data.Options.FirstOrDefault(op => op.Name == "user")?.Value as SocketGuildUser;
                         string reason = command.Data.Options.FirstOrDefault(op => op.Name == "user").Value as string;
                         _ = command.RespondAsync("Warned..", ephemeral: true);
-
                     }
                     break;
+
                 case "gitpreview":
-                    //I litteraly translated this js part to c#
+                    /*//I litteraly translated this js part to c#
                     //https://github.com/HimbeersaftLP/MagicalHourglass/blob/master/bot.js
                     // s/o Himbeersaft i guess
                     string url = command.Data.Options.FirstOrDefault(st => st.Name == "url")?.Value as string;
@@ -339,7 +336,6 @@ namespace DevCommuBot.Services
                             {
                                 _logger.LogDebug($"le nombre: {match.Groups[5].Value} n'est pas reconnu comme un nombre");
                                 await command.RespondAsync("Une erreur est survenue :(");
-
                             }
                         }
                         await command.RespondAsync("Searching Code!!");
@@ -381,7 +377,6 @@ namespace DevCommuBot.Services
                                     m.Content = msg;
                                 });
                                 _logger.LogDebug($"Matched {lang}");
-
                             }
                             else
                             {
@@ -412,10 +407,12 @@ namespace DevCommuBot.Services
                     }
                     else
                         _ = command.RespondAsync($"Il faut préciser une url suivant ce regex: `{regex}`");
+                    */
                     break;
             }
         }
-        private async Task OnReady()
+
+        /*private async Task OnReady()
         {
             _logger.LogInformation("Registering commands");
             var cmds = await _client.Rest.GetGuildApplicationCommands(UtilService.GUILD_ID);
@@ -562,6 +559,49 @@ namespace DevCommuBot.Services
                         }
                     }
                 };
+                SlashCommandBuilder EmbedCommand = new()
+                {
+                    Name = "embed",
+                    Description = "Send an embed message",
+                    Options = new()
+                    {
+                        new()
+                        {
+                            Name = "title",
+                            Required = true,
+                            Type = ApplicationCommandOptionType.String,
+                            Description = "Emble Title"
+                        },
+                        new()
+                        {
+                            Name = "Description",
+                            Required = false,
+                            Type = ApplicationCommandOptionType.String,
+                            Description = "Embed's description"
+                        },
+                        new()
+                        {
+                            Name = "Author",
+                            Required = false,
+                            Type = ApplicationCommandOptionType.User,
+                            Description = "Embed's Author"
+                        },
+                        new()
+                        {
+                            Name = "Footer",
+                            Required = true,
+                            Type = ApplicationCommandOptionType.String,
+                            Description = "Embed's Footer"
+                        },
+                        new()
+                        {
+                            Name = "Link",
+                            Required = false,
+                            Type = ApplicationCommandOptionType.String,
+                            Description = "Link in title"
+                        }
+                    },
+                };
                 try
                 {
                     await _client.Rest.CreateGuildCommand(pointsCommand.Build(), UtilService.GUILD_ID);
@@ -581,7 +621,7 @@ namespace DevCommuBot.Services
                     _logger.LogError(json);
                 }
             }
-        }
+        }*/
 
         private Task OnUserLeft(SocketGuild member)
         {
