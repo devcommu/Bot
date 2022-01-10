@@ -1,14 +1,13 @@
-﻿using Discord;
+﻿using System;
+using System.Reflection;
+using System.Threading.Tasks;
+
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DevCommuBot.Services
 {
@@ -27,6 +26,7 @@ namespace DevCommuBot.Services
             _commands = _services.GetRequiredService<CommandService>();
             _discord.Ready += OnReady;
         }
+
         public async Task StartAsync()
         {
             string discordToken = _config["Token"];

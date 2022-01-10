@@ -1,7 +1,8 @@
-﻿using DevCommuBot.Data.Models.Users.Tiers;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+
+using DevCommuBot.Data.Models.Users.Tiers;
 
 namespace DevCommuBot.Data.Models.Users
 {

@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace DevCommuBot.Data.Models.Warnings
 {
     [Table("Warning")]
-    class Warning
+    internal class Warning
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

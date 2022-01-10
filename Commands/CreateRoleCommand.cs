@@ -17,7 +17,7 @@ namespace DevCommuBot.Commands
     public class CreateRoleCommand : InteractionModuleBase<SocketInteractionContext>
     {
         public UtilService Utils { get; set; }
-        public ILogger Logger { get; set; }
+        public ILogger<CommandHandler> Logger { get; set; }
 
 
         [SlashCommand("createrole", "Create your own role [Only for boosted person]")]

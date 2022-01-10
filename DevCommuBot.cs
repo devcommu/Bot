@@ -1,15 +1,19 @@
-﻿using DevCommuBot.Data;
+﻿using System;
+using System.Threading.Tasks;
+
+using DevCommuBot.Data;
 using DevCommuBot.Services;
+
 using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http;
+
 using Serilog;
-using System;
-using System.Threading.Tasks;
 
 namespace DevCommuBot
 {
@@ -18,7 +22,7 @@ namespace DevCommuBot
         private IConfigurationRoot config;
 
         public async Task StartAsync()
-        { 
+        {
             config = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile(path: "config.json").Build();
@@ -58,8 +62,8 @@ namespace DevCommuBot
 
             serviceProvider.GetRequiredService<GuildService>();
             await Task.Delay(-1);
-
         }
+
         private void ConfigureServices(IServiceCollection services)
         {
             //Add SeriLog

@@ -1,22 +1,24 @@
-﻿using Discord.Commands;
+﻿using System;
+using System.Reflection;
+using System.Threading.Tasks;
+
+using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-using System;
-using System.Reflection;
-using System.Threading.Tasks;
-
 namespace DevCommuBot.Services
 {
-    internal class CommandHandler
+    public class CommandHandler
     {
         private readonly IConfigurationRoot _config;
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
         private readonly InteractionService _slashCommand;
+        private readonly UtilService _util;
         private readonly IServiceProvider _services;
         private readonly ILogger _logger;
 
@@ -28,9 +30,9 @@ namespace DevCommuBot.Services
             _commands = serviceProvider.GetRequiredService<CommandService>();
             _slashCommand = serviceProvider.GetRequiredService<InteractionService>();
             _logger = serviceProvider.GetService<ILogger<CommandHandler>>();
+            _util = serviceProvider.GetService<UtilService>();
 
             _logger.LogDebug("Registering commands");
-            _slashCommand.AddModulesAsync(Assembly.GetExecutingAssembly(), serviceProvider);
             _commands.CommandExecuted += OnCommandExecuted;
             _client.MessageReceived += HandleCommand;
             _client.InteractionCreated += OnInteraction;
@@ -39,13 +41,20 @@ namespace DevCommuBot.Services
 
         private async Task OnReady()
         {
-            await _slashCommand.RegisterCommandsGloballyAsync().ContinueWith(x =>
+            await _slashCommand.AddModulesAsync(Assembly.GetExecutingAssembly(), _services);
+            _logger.LogDebug("Registering commands");
+            await _slashCommand.RegisterCommandsToGuildAsync(584987515388428300).ContinueWith(x =>
             {
+                _logger.LogDebug("Finished Registering commands.");
                 if (x.IsFaulted)
                 {
                     _logger.LogDebug("Errreur survenue");
                     _logger.LogDebug(x.Exception.Message);
                 }
+                _logger.LogDebug($"Status: {x.Status}");
+                if (x.Exception != null)
+                    _logger.LogDebug(x.Exception.Message);
+
                 if (x.IsCompletedSuccessfully)
                 {
                     foreach (var command in x.Result)
@@ -53,8 +62,9 @@ namespace DevCommuBot.Services
                         _logger.LogDebug($"{command.Name} a été envoyé");
                     }
                 }
+                _logger.LogDebug($"Result size: {x.Result.Count}");
             });
-            await _slashCommand.RegisterCommandsToGuildAsync(584987515388428300);
+            _client.Ready -= OnReady;
         }
 
         private async Task OnInteraction(SocketInteraction interaction)
@@ -77,7 +87,6 @@ namespace DevCommuBot.Services
 
         private async Task OnCommandExecuted(Discord.Optional<CommandInfo> arg1, ICommandContext arg2, Discord.Commands.IResult arg3)
         {
-
         }
     }
 }

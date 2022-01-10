@@ -1,22 +1,27 @@
-﻿using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
+using Discord.WebSocket;
+
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace DevCommuBot.Services
 {
     internal class PointService
     {
-
         private readonly DiscordSocketClient _client;
         private readonly ILogger _logger;
         private readonly UtilService _util;
         private readonly DataService _database;
         private readonly Dictionary<ulong, ulong> CoolDown = new();
         private readonly Dictionary<ulong, long> MessageCooldown = new();
+
+        // ------- CONST
+        private readonly int MIN_LENGTH = 10;
+
         public PointService(IServiceProvider services)
         {
             _client = services.GetRequiredService<DiscordSocketClient>();
@@ -29,10 +34,10 @@ namespace DevCommuBot.Services
         {
             if (IsValid(message))
             {
-                
             }
             else
             {
+                _logger.LogDebug($"message sent by {message.Author.Username} is invalid");
                 return;
             }
         }
@@ -41,16 +46,19 @@ namespace DevCommuBot.Services
         {
             if (!_util.GetAllowedChannels().Contains(msg.Channel as SocketGuildChannel))
                 return false;
+            if (msg.Content.Length < MIN_LENGTH)
+                return false;
             if (ContainsBadWords(msg.Content))
                 return false;
             return true;
         }
+
         public bool ContainsBadWords(string message)
         {
             var messArray = message.Split(' ');
             bool found = false;
             List<string> badwords = GetBadWords();
-            foreach(var mess in messArray)
+            foreach (var mess in messArray)
             {
                 if (badwords.Contains(mess))
                 {
@@ -59,6 +67,7 @@ namespace DevCommuBot.Services
             }
             return found;
         }
+
         public static List<string> GetBadWords()
         {
             return File.ReadAllLines("badwords.txt").ToList();

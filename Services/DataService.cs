@@ -1,11 +1,13 @@
-﻿using DevCommuBot.Data;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+using DevCommuBot.Data;
 using DevCommuBot.Data.Models.Users;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace DevCommuBot.Services
 {
@@ -16,13 +18,16 @@ namespace DevCommuBot.Services
 
         private readonly UtilService _util;
         private readonly IServiceProvider _services;
+
         public DataService(IServiceProvider services)
         {
             _logger = services.GetRequiredService<ILogger<DataService>>();
             _dataContext = services.GetRequiredService<DataContext>();
             _services = services;
         }
+
         #region USER
+
         public async Task CreateAccount(ulong userId)
         {
             await _dataContext.Users.AddAsync(new User
@@ -31,6 +36,7 @@ namespace DevCommuBot.Services
             });
             await _dataContext.SaveChangesAsync();
         }
+
         /// <summary>
         /// Get Account of user
         /// </summary>
@@ -41,6 +47,7 @@ namespace DevCommuBot.Services
             .Include(u => u.Warnings)
             .ThenInclude(uw => uw.Warning)
             .FirstOrDefaultAsync(u => u.UserId == userId);
-        #endregion
+
+        #endregion USER
     }
 }

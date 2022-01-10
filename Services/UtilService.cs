@@ -1,10 +1,12 @@
-﻿using Discord;
-using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using Discord;
+using Discord.WebSocket;
+
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace DevCommuBot.Services
 {
@@ -26,6 +28,7 @@ namespace DevCommuBot.Services
         public readonly Color EmbedColor = new(19, 169, 185);
 
         public readonly Dictionary<ulong, long> CreateroleCooldown = new();
+
         public UtilService(IServiceProvider services)
         {
             _client = services.GetRequiredService<DiscordSocketClient>();
@@ -60,7 +63,7 @@ namespace DevCommuBot.Services
             => GetGuild()?.GetRole(ROLE_BOOSTERS_ID);
 
         public SocketTextChannel GetLogChannel()
-            => _client.GetChannel(CHANNEL_LOGS_ID)as SocketTextChannel;
+            => _client.GetChannel(CHANNEL_LOGS_ID) as SocketTextChannel;
 
         public SocketTextChannel GetBoostersChannel()
             => _client.GetChannel(CHANNEL_BOOSTERS_ID) as SocketTextChannel;
@@ -83,6 +86,7 @@ namespace DevCommuBot.Services
 
         public bool HasCustomRole(SocketGuildUser member)
             => member.Roles.Any(role => role.Position > GetBoostersRole().Position) && member.GuildPermissions.Administrator is not true;
+
         public SocketRole? GetCustomRole(SocketGuildUser member)
             => member.GuildPermissions.Administrator ? null : member.Roles.FirstOrDefault(role => role.Position > GetBoostersRole().Position);
     }

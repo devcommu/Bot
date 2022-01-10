@@ -288,6 +288,7 @@ namespace DevCommuBot.Services
                     break;
 
                 case "mute":
+                    /*
                     if (member.GuildPermissions.KickMembers)
                     {
                         SocketGuildUser victim = command.Data.Options.FirstOrDefault(op => op.Name == "user").Value as SocketGuildUser;
@@ -301,15 +302,17 @@ namespace DevCommuBot.Services
                         }
                     }
                     await command.RespondAsync("Vous n'avez pas la permission d'éxectuer cette commande", ephemeral: true);
+                    */
                     break;
 
                 case "warn":
+                    /*
                     if (member.GuildPermissions.Administrator)
                     {
                         SocketGuildUser victim = command.Data.Options.FirstOrDefault(op => op.Name == "user")?.Value as SocketGuildUser;
                         string reason = command.Data.Options.FirstOrDefault(op => op.Name == "user").Value as string;
                         _ = command.RespondAsync("Warned..", ephemeral: true);
-                    }
+                    }*/
                     break;
 
                 case "gitpreview":
