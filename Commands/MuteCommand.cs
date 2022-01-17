@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using DevCommuBot.Services;
 
@@ -18,9 +14,9 @@ namespace DevCommuBot.Commands
         private readonly DataService _database;
 
         [SlashCommand("mute", "mute an user")]
-        public async Task MuteUser(SocketGuildUser user, string reason, [Summary("duration", "duration time in seconds")]int duration = -1)
+        public async Task MuteUser(SocketGuildUser user, string reason, [Summary("duration", "duration time in seconds")] int duration = -1)
         {
-            if((Context.User as SocketGuildUser).GuildPermissions.ModerateMembers)
+            if ((Context.User as SocketGuildUser).GuildPermissions.ModerateMembers)
             {
                 _ = RespondAsync("WIP", ephemeral: true);
             }

@@ -31,10 +31,39 @@ namespace DevCommuBot.Services
 
             _client.UserJoined += OnUserJoin;
             _client.LeftGuild += OnUserLeft;
+            _client.Ready += OnClientReady;
             /*_client.Ready += OnReady;
             _client.InteractionCreated += OnInteraction;*/
             _client.GuildMemberUpdated += OnGuildUpdate;
             _client.MessageReceived += OnMessageReceive;
+        }
+
+        private async Task OnClientReady()
+        {
+            var channel = _util.GetGuild().GetTextChannel(738875544858525829);
+            var obj = await channel.GetMessagesAsync(limit: 5).ToListAsync();
+            var messages = obj[0];
+            var message = messages.Where(m => m.Author.Id == _client.CurrentUser.Id)?.FirstOrDefault();
+            if(message != null)
+            {
+
+            }
+            else
+            {
+                //Pas de message envoyé.
+                var menuBuilder = new SelectMenuBuilder()
+                    .WithPlaceholder("Choisissez un role")
+                    .WithCustomId("role-selection")
+                    .WithMinValues(1)
+                    .WithMaxValues(1)
+                    .AddOption("Projects", "projects", "See the useless github webhook")
+                    .AddOption("Gaming", "gaming", "Get the gaming rank and start to be cool imo");
+
+                var builder = new ComponentBuilder()
+                    .WithSelectMenu(menuBuilder);
+                channel.SendMessageAsync("Choisissez un role:", components: builder.Build());
+            }
+            _client.Ready -= OnClientReady;
         }
 
         private Task OnMessageReceive(SocketMessage socketMessage)

@@ -19,13 +19,12 @@ namespace DevCommuBot.Commands
         public UtilService Utils { get; set; }
         public ILogger<CommandHandler> Logger { get; set; }
 
-
         [SlashCommand("createrole", "Create your own role [Only for boosted person]")]
-        public async Task CreateCommand([Summary("roleName", "The name of your role")]string name, [Summary("color", "Color of your role in hexadecimal")]string color, string iconUrl = null)
+        public async Task CreateCommand([Summary("roleName", "The name of your role")] string name, [Summary("color", "Color of your role in hexadecimal")] string color, string iconUrl = null)
         {
             if (Context.Channel.Id != UtilService.CHANNEL_BOOSTERS_ID)
             {
-               _ = RespondAsync("Vous ne pouvez pas utilisez cette commande ici", ephemeral: true);
+                _ = RespondAsync("Vous ne pouvez pas utilisez cette commande ici", ephemeral: true);
                 return;
             }
             if (Utils.CreateroleCooldown.ContainsKey(Context.User.Id))
@@ -58,7 +57,7 @@ namespace DevCommuBot.Commands
                             BaseAddress = new Uri(iconUrl)
                         };
                         imageStream = await client.GetStreamAsync("");
-                        if(imageStream != null)
+                        if (imageStream != null)
                         {
                             await memberRole.ModifyAsync(r =>
                             {
