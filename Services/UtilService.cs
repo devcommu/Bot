@@ -5,8 +5,11 @@ using System.Linq;
 using Discord;
 using Discord.WebSocket;
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
+using RiotSharp;
 
 namespace DevCommuBot.Services
 {
@@ -28,11 +31,15 @@ namespace DevCommuBot.Services
         public readonly Color EmbedColor = new(19, 169, 185);
 
         public readonly Dictionary<ulong, long> CreateroleCooldown = new();
+        public readonly RiotApi Riot;
+        private readonly IConfigurationRoot _config;
 
         public UtilService(IServiceProvider services)
         {
             _client = services.GetRequiredService<DiscordSocketClient>();
             _logger = services.GetRequiredService<ILogger<GuildService>>();
+            _config = services.GetRequiredService<IConfigurationRoot>();
+            Riot = RiotApi.GetDevelopmentInstance(_config["riotToken"]);
         }
 
         public SocketGuild GetGuild()

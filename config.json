@@ -1,3 +1,4 @@
 ﻿{
-  "token": "YOUR TOKEN"
+  "token": "YOUR TOKEN",
+  "riotToken" :  "YOUR RIOT TOKEN"
 }
