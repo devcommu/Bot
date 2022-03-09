@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 using DevCommuBot.Data;
 using DevCommuBot.Data.Models.Users;
+using DevCommuBot.Data.Models.Warnings;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,5 +50,25 @@ namespace DevCommuBot.Services
             .FirstOrDefaultAsync(u => u.UserId == userId);
 
         #endregion USER
+        #region WARN
+        public async Task WarnUser(User victime,ulong authorId, string details, WarningReason reasontype = WarningReason.NO_REASON)
+        {
+            var warning = new Warning()
+            {
+                AuthorId = authorId,
+                Details = details,
+                Reason = reasontype,
+                Created = DateTime.UtcNow
+            };
+            await _dataContext.Warnings.AddAsync(warning);
+            victime.Warnings.Add(new()
+            {
+                User = victime,
+                UserId = victime.Id,
+                Warning = warning,
+                WarningId = warning.Id
+            });
+            await _dataContext.SaveChangesAsync();
+        }
     }
 }
