@@ -75,6 +75,11 @@ namespace DevCommuBot.Services
             /*if (_util.GetAllowedChannels().Exists(c => c is not null and c.Id == message.Channel.Id) is false)
                 return Task.CompletedTask;*/
             _pointService.HandleMessage(message);
+            //Verfier si ça parle d'hebergeur
+            if(message.Content.Contains("hébergeur") || message.Content.Contains("hebergeur"))
+            {
+                //verifier perm user
+            }
             return Task.CompletedTask;
         }
 
