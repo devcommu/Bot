@@ -1,14 +1,19 @@
-﻿using Discord;
-using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Discord;
+using Discord.WebSocket;
+
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
+using RiotSharp;
+
 namespace DevCommuBot.Services
 {
-    internal class UtilService
+    public class UtilService
     {
         private readonly DiscordSocketClient _client;
         private readonly ILogger _logger;
@@ -26,10 +31,16 @@ namespace DevCommuBot.Services
         public readonly Color EmbedColor = new(19, 169, 185);
 
         public readonly Dictionary<ulong, long> CreateroleCooldown = new();
+        public readonly RiotApi Riot;
+        private readonly IConfigurationRoot _config;
+
         public UtilService(IServiceProvider services)
         {
             _client = services.GetRequiredService<DiscordSocketClient>();
             _logger = services.GetRequiredService<ILogger<GuildService>>();
+            _config = services.GetRequiredService<IConfigurationRoot>();
+            // For now it only accept development instance wich must be renew each day.
+            Riot = RiotApi.GetDevelopmentInstance(_config["riotToken"]);
         }
 
         public SocketGuild GetGuild()
@@ -60,7 +71,7 @@ namespace DevCommuBot.Services
             => GetGuild()?.GetRole(ROLE_BOOSTERS_ID);
 
         public SocketTextChannel GetLogChannel()
-            => _client.GetChannel(CHANNEL_LOGS_ID)as SocketTextChannel;
+            => _client.GetChannel(CHANNEL_LOGS_ID) as SocketTextChannel;
 
         public SocketTextChannel GetBoostersChannel()
             => _client.GetChannel(CHANNEL_BOOSTERS_ID) as SocketTextChannel;
@@ -83,6 +94,7 @@ namespace DevCommuBot.Services
 
         public bool HasCustomRole(SocketGuildUser member)
             => member.Roles.Any(role => role.Position > GetBoostersRole().Position) && member.GuildPermissions.Administrator is not true;
+
         public SocketRole? GetCustomRole(SocketGuildUser member)
             => member.GuildPermissions.Administrator ? null : member.Roles.FirstOrDefault(role => role.Position > GetBoostersRole().Position);
     }

@@ -1,27 +1,79 @@
-﻿using Discord.Commands;
+﻿using System;
+using System.Reflection;
+using System.Threading.Tasks;
+
+using Discord.Commands;
+using Discord.Interactions;
 using Discord.WebSocket;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace DevCommuBot.Services
 {
-    internal class CommandHandler
+    public class CommandHandler
     {
         private readonly IConfigurationRoot _config;
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
+        private readonly InteractionService _slashCommand;
+        private readonly UtilService _util;
+        private readonly IServiceProvider _services;
+        private readonly ILogger _logger;
 
         public CommandHandler(IServiceProvider serviceProvider)
         {
+            _services = serviceProvider;
             _config = serviceProvider.GetRequiredService<IConfigurationRoot>();
             _client = serviceProvider.GetRequiredService<DiscordSocketClient>();
             _commands = serviceProvider.GetRequiredService<CommandService>();
+            _slashCommand = serviceProvider.GetRequiredService<InteractionService>();
+            _logger = serviceProvider.GetService<ILogger<CommandHandler>>();
+            _util = serviceProvider.GetService<UtilService>();
 
+            _logger.LogDebug("Registering commands");
             _commands.CommandExecuted += OnCommandExecuted;
             _client.MessageReceived += HandleCommand;
+            _client.InteractionCreated += OnInteraction;
+            _client.Ready += OnReady;
         }
+
+        private async Task OnReady()
+        {
+            await _slashCommand.AddModulesAsync(Assembly.GetExecutingAssembly(), _services);
+            _logger.LogDebug("Registering commands");
+            await _slashCommand.RegisterCommandsToGuildAsync(584987515388428300).ContinueWith(x =>
+            {
+                _logger.LogDebug("Finished Registering commands.");
+                if (x.IsFaulted)
+                {
+                    _logger.LogDebug("Errreur survenue");
+                    _logger.LogDebug(x.Exception.Message);
+                }
+                _logger.LogDebug($"Status: {x.Status}");
+                if (x.Exception != null)
+                    _logger.LogDebug(x.Exception.Message);
+
+                if (x.IsCompletedSuccessfully)
+                {
+                    foreach (var command in x.Result)
+                    {
+                        _logger.LogDebug($"{command.Name} a été envoyé");
+                    }
+                }
+                _logger.LogDebug($"Result size: {x.Result.Count}");
+            });
+            _client.Ready -= OnReady;
+        }
+
+        private async Task OnInteraction(SocketInteraction interaction)
+        {
+            _logger.LogDebug("Received Interactions!");
+            var ctx = new SocketInteractionContext(_client, interaction);
+            await _slashCommand.ExecuteCommandAsync(ctx, _services);
+        }
+
         // Event used to check if a message is a command
         private async Task HandleCommand(SocketMessage socketMessage)
         {
@@ -33,9 +85,8 @@ namespace DevCommuBot.Services
             //Handle Command?
         }
 
-        private async Task OnCommandExecuted(Discord.Optional<CommandInfo> arg1, ICommandContext arg2, IResult arg3)
+        private async Task OnCommandExecuted(Discord.Optional<CommandInfo> arg1, ICommandContext arg2, Discord.Commands.IResult arg3)
         {
-
         }
     }
 }

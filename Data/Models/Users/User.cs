@@ -1,7 +1,8 @@
-﻿using DevCommuBot.Data.Models.Users.Tiers;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+
+using DevCommuBot.Data.Models.Users.Tiers;
 
 namespace DevCommuBot.Data.Models.Users
 {
@@ -19,5 +20,6 @@ namespace DevCommuBot.Data.Models.Users
         public int Points { get; set; } = 0;
         public TiersEnum Tier { get; set; } = TiersEnum.NO_TIER; //Class(Table) or Enum?
         //Next soon?
+        public bool DisplayPartnerAds { get; set; } = true;
     }
 }

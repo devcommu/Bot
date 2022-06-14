@@ -1,12 +1,10 @@
-﻿using Discord;
+﻿using System.Threading.Tasks;
+
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DevCommuBot.Services
 {
@@ -25,6 +23,7 @@ namespace DevCommuBot.Services
             _discord.Log += OnLogAsync;
             _commands.Log += OnLogAsync;
         }
+
         public Task OnLogAsync(LogMessage msg)
         {
             string logText = $"{msg.Source}: {msg.Exception?.ToString() ?? msg.Message}";
