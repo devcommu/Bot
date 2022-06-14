@@ -1,14 +1,21 @@
-﻿using System.Net;
+﻿using System.Diagnostics;
+using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+using DevCommuBot.Services;
+
 using Discord.Interactions;
+
+using Microsoft.Extensions.Logging;
 
 namespace DevCommuBot.Commands
 {
     public class GitPreviewCommand : InteractionModuleBase<SocketInteractionContext>
     {
+        public ILogger<CommandHandler> Logger { get; set; }
+
         [SlashCommand("gitpreview", "Preview code from github")]
         public async Task GitPreview(string url)
         {
@@ -26,9 +33,11 @@ namespace DevCommuBot.Commands
                     return;
                 }
                 int lineTo = -5;
-                if (match.Groups.Count > 5)
+                Logger.LogDebug($"Count: {match.Groups.Count}");
+                if (match.Groups.Count == 5)
                 {
-                    if (!int.TryParse(match.Groups[5].Value, out lineTo))
+                    Logger.LogDebug($"Count = 5 : {match.Groups.Count} {string.Join(" ", match.Groups.Values)}");
+                    if (!int.TryParse(match.Groups[4].Value, out lineTo))
                     {
                         await RespondAsync("Une erreur est survenue :(");
                     }
@@ -79,9 +88,21 @@ namespace DevCommuBot.Commands
                             });
                             return;
                         }
+
+                        int from = lineAsked - 2;
+                        int to = lineTo + 2;
+                        var langMatch = FileEndRegex.Match(match.Groups[2].Value);
+                        var lang = langMatch.Groups[1];
+                        var cleanFileName = match.Groups[2].Value.Replace(@"\?.+", "");
+                        var msg = $"Lignes {from} - {to} de {cleanFileName}\n```{lang}\n";
+                        for (int i = from; i <= to; i++)
+                        {
+                            msg += $"{lines[i]}\n";
+                        }
+                        msg += "\n```";
                         await originalResponse.ModifyAsync(m =>
                         {
-                            m.Content = ":robot: On Dort!";
+                            m.Content = msg;
                         });
                         return;
                     }

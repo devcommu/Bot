@@ -70,5 +70,6 @@ namespace DevCommuBot.Services
             });
             await _dataContext.SaveChangesAsync();
         }
+        #endregion
     }
 }
