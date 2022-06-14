@@ -56,8 +56,8 @@ namespace DevCommuBot.Services
                     .WithCustomId("role-selection")
                     .WithMinValues(1)
                     .WithMaxValues(1)
-                    .AddOption("Projects", "projects", "See the useless github webhook")
-                    .AddOption("Gaming", "gaming", "Get the gaming rank and start to be cool imo");
+                    .AddOption("Projects", "projects", "Accès aux notification de webhook(inutile)")
+                    .AddOption("Gaming", "gaming", "Obtenez le role gaming et devenez cool (imo)");
 
                 var builder = new ComponentBuilder()
                     .WithSelectMenu(menuBuilder);
@@ -103,7 +103,7 @@ namespace DevCommuBot.Services
                         {
                             roles += $"{r.Mention} \n";
                         });
-                        _util.SendLog($"{member} unboosted", $"> He had these roles:\n{roles}", member);
+                        _util.SendLog($"{member} a retiré son boost", $"> Il avait ses roles:\n{roles}", member);
                         //Check if user had a custom role:
                         if (_util.HasCustomRole(member))
                         {
@@ -111,9 +111,9 @@ namespace DevCommuBot.Services
                             var customRole = member.Roles.First(r => r.Position > _util.GetBoostersRole().Position);
                             await member.RemoveRoleAsync(customRole, options: new()
                             {
-                                AuditLogReason = "User has stopped boost"
+                                AuditLogReason = "Le joueur ne boost plus"
                             });
-                            _util.SendLog($"Removed CustomRole to {member}", $"Role: {customRole}\n Cause: No more boosting!", member);                        }
+                            _util.SendLog($"{member} a perdu son role personnalisé", $"Role: {customRole}\n Raison: Ne boost plus", member);                        }
                     }
                 }
                 if (added.Count is not 0)
@@ -125,7 +125,7 @@ namespace DevCommuBot.Services
                             .WithAuthor(member)
                             .WithColor(_util.EmbedColor)
                             .WithTitle($"{member} vient de booster!")
-                            .WithDescription("> **Merci d'avoir booster!!!**\nEn boostant vous avez accès à la commande `/createrole` vous permettant ainsi de crée votre propre role")
+                            .WithDescription("> **Merci d'avoir boosté!!!**\nEn boostant vous avez accès à la commande `/createrole` vous permettant de créer votre propre rôle")
                             .WithCurrentTimestamp()
                             .Build();
                         _util.GetBoostersChannel().SendMessageAsync(text: member.Mention, embed: embed);

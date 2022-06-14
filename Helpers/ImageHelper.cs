@@ -24,7 +24,6 @@ namespace DevCommuBot.Helpers
 
             try
             {
-                //WebProxy myProxy = new();
                 HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
 
                 HttpWebResponse response = (HttpWebResponse)req.GetResponse();

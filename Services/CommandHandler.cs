@@ -32,7 +32,6 @@ namespace DevCommuBot.Services
             _logger = serviceProvider.GetService<ILogger<CommandHandler>>();
             _util = serviceProvider.GetService<UtilService>();
 
-            _logger.LogDebug("Registering commands");
             _commands.CommandExecuted += OnCommandExecuted;
             _client.MessageReceived += HandleCommand;
             _client.InteractionCreated += OnInteraction;
@@ -48,7 +47,7 @@ namespace DevCommuBot.Services
                 _logger.LogDebug("Finished Registering commands.");
                 if (x.IsFaulted)
                 {
-                    _logger.LogDebug("Errreur survenue");
+                    _logger.LogDebug("Une Errreur survenue");
                     _logger.LogDebug(x.Exception.Message);
                 }
                 _logger.LogDebug($"Status: {x.Status}");
@@ -57,12 +56,8 @@ namespace DevCommuBot.Services
 
                 if (x.IsCompletedSuccessfully)
                 {
-                    foreach (var command in x.Result)
-                    {
-                        _logger.LogDebug($"{command.Name} a été envoyé");
-                    }
+                    _logger.LogDebug($"{x.Result.Count} commandes ont été envoyés!");
                 }
-                _logger.LogDebug($"Result size: {x.Result.Count}");
             });
             _client.Ready -= OnReady;
         }
