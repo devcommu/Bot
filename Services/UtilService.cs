@@ -86,7 +86,7 @@ namespace DevCommuBot.Services
                 .WithAuthor(author)
                 .WithTitle(title)
                 .WithDescription(description)
-                .WithFooter("2021")
+                .WithFooter("2022")
                 .WithCurrentTimestamp()
                 .Build();
             GetLogChannel().SendMessageAsync(embed: embed);
