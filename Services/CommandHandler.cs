@@ -33,7 +33,6 @@ namespace DevCommuBot.Services
             _util = serviceProvider.GetService<UtilService>();
 
             _commands.CommandExecuted += OnCommandExecuted;
-            _client.MessageReceived += HandleCommand;
             _client.InteractionCreated += OnInteraction;
             _client.Ready += OnReady;
         }
@@ -67,17 +66,6 @@ namespace DevCommuBot.Services
             _logger.LogDebug("Received Interactions!");
             var ctx = new SocketInteractionContext(_client, interaction);
             await _slashCommand.ExecuteCommandAsync(ctx, _services);
-        }
-
-        // Event used to check if a message is a command
-        private async Task HandleCommand(SocketMessage socketMessage)
-        {
-            if (socketMessage is not SocketUserMessage message)
-                return;
-            if (message.Source is not Discord.MessageSource.User)
-                return;
-            int argPos = 0;
-            //Handle Command?
         }
 
         private async Task OnCommandExecuted(Discord.Optional<CommandInfo> arg1, ICommandContext arg2, Discord.Commands.IResult arg3)

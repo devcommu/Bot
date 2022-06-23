@@ -101,7 +101,7 @@ namespace DevCommuBot.Commands
                             });
                         }
                     }
-                    RespondAsync($"Vous venez de crée le role: {role.Mention}");
+                    _ = RespondAsync($"Vous venez de crée le role: {role.Mention}");
                 }
                 Utils.CreateroleCooldown[Context.User.Id] = DateTimeOffset.Now.ToUnixTimeSeconds();
                 return;

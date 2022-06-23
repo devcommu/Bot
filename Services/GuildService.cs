@@ -61,7 +61,7 @@ namespace DevCommuBot.Services
 
                 var builder = new ComponentBuilder()
                     .WithSelectMenu(menuBuilder);
-                channel.SendMessageAsync("Choisissez un role:", components: builder.Build());
+                await channel.SendMessageAsync("Choisissez un role:", components: builder.Build());
             }
             _client.Ready -= OnClientReady;
         }
