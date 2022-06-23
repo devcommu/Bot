@@ -55,7 +55,7 @@ namespace DevCommuBot.Commands
     }
     public class WarnModal : IModal
     {
-        public string Title { get; set; } = "Mute ";
+        public string Title { get; set; } = "Warn ";
 
         [InputLabel("User Id?")]
         [ModalTextInput("warn_id", style: TextInputStyle.Short, placeholder: "04444", maxLength: 30)]
