@@ -39,7 +39,7 @@ namespace DevCommuBot.Commands
                     .WithTitle($"ApexStats: {apexStats.Global.Name}")
                     .WithColor(new(50, 80, 71))
                     .WithAuthor(Context.User)
-                    .WithImageUrl(apexStats.Global.Rank.RankImg)
+                    .WithThumbnailUrl(apexStats.Global.Rank.RankImg)
                     .AddField("Ranked:", $"> Score: {apexStats.Global.Rank.Score} Classement: {apexStats.Global.Rank.RankName}")
                     .AddField("Arena: ", "SOON")
                     .WithCurrentTimestamp()
