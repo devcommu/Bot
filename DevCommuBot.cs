@@ -50,7 +50,8 @@ namespace DevCommuBot
                 .AddDbContext<DataContext>()
                 .AddSingleton<DataService>()
                 .AddSingleton<PointService>()
-                .AddSingleton<InteractionService>();
+                .AddSingleton<InteractionService>()
+                .AddSingleton<ApexStatsService>();
             ConfigureServices(services);
             var serviceProvider = services.BuildServiceProvider();
 

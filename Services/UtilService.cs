@@ -37,7 +37,7 @@ namespace DevCommuBot.Services
         public UtilService(IServiceProvider services)
         {
             _client = services.GetRequiredService<DiscordSocketClient>();
-            _logger = services.GetRequiredService<ILogger<GuildService>>();
+            _logger = services.GetRequiredService<ILogger<UtilService>>();
             _config = services.GetRequiredService<IConfigurationRoot>();
             // For now it only accept development instance wich must be renew each day.
             Riot = RiotApi.GetDevelopmentInstance(_config["riotToken"]);
