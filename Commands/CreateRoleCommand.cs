@@ -75,7 +75,7 @@ namespace DevCommuBot.Commands
                         _ = RespondAsync("Le nom du rôle souhaité existe déjà");
                         return;
                     }
-                    var role = await Utils.GetGuild().CreateRoleAsync(name, null, color: new Color((uint)finalColor), true, false, doptions:new()
+                    var role = await Utils.GetGuild().CreateRoleAsync(name, null, color: new Color((uint)finalColor), true, false, options:new()
                     {
                         AuditLogReason = "Booster creation role",
                     });
