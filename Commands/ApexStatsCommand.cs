@@ -40,8 +40,8 @@ namespace DevCommuBot.Commands
                     .WithColor(new(50, 80, 71))
                     .WithAuthor(Context.User)
                     .WithThumbnailUrl(apexStats.Global.Rank.RankImg)
-                    .AddField("Ranked:", $"> Score: {apexStats.Global.Rank.Score} Classement: {apexStats.Global.Rank.RankName}")
-                    .AddField("Arena: ", "SOON")
+                    .AddField("Ranked:", $"> Score: {apexStats.Global.Rank.Score} Classement: {apexStats.Global.Rank.RankName}#{apexStats.Global.Rank.Division}")
+                    .AddField("Arena: ", $"> Score: {apexStats.Global.Arena.Score} Classement: {apexStats.Global.Arena.RankName}#{apexStats.Global.Arena.Division}")
                     .WithCurrentTimestamp()
                     .WithFooter("Data from Apex Legends Status")
                     .Build();

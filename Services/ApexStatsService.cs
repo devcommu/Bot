@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -56,12 +54,21 @@ namespace DevCommuBot.Services
         XBOX,
         SWITCH
     }
+    public enum ApexRanked : int
+    {
+        UNRANKED = 0,
+        BRONZE,
+        SILVER,
+        GOLD,
+        DIAMOND,
+        MASTER
+    }
     public class ApexStats
     {
         [JsonProperty("global")]
         public GlobalStats Global { get; set; }
         [JsonProperty("realtime")]
-        public object Realtime { get; set; }
+        public Realtime Realtime { get; set; }
         [JsonProperty("legends")]
         public object Legends { get; set; }
         [JsonProperty("mozambiquehere_internal")]
@@ -74,6 +81,7 @@ namespace DevCommuBot.Services
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Error { get; set; }
     }
+    [JsonObject]
     public class GlobalStats
     {
         [JsonProperty("name")]
@@ -87,6 +95,26 @@ namespace DevCommuBot.Services
         // TODO: Implement....
         [JsonProperty("rank")]
         public GlobalRankStats Rank { get; set; }
+        [JsonProperty("arena")]
+        public GlobalRankStats Arena { get; set; }
+        [JsonProperty("badges")]
+        public List<ApexBadges> Badges { get; set; }
+    }
+    public class Realtime
+    {
+        [JsonProperty("lobbyState")]
+        public string LobbyState { get; set; } // Lobby can be Opened or closed
+        [JsonProperty("isOnline")]
+        public bool Online { get; set; }
+        [JsonProperty("isInGame")]
+        public bool InGame { get; set; }
+        [JsonProperty("selectedLegend")]
+        public string Legend { get; set; } // Legend Name
+        [JsonProperty("currentState")]
+        public string State { get; set; } // Can be online or offline
+        [JsonProperty("currentStateAsText")]
+        public string StateString { get; set; }
+
     }
     public class GlobalRankStats
     {
@@ -99,5 +127,10 @@ namespace DevCommuBot.Services
         public string RankImg { get; set; }
         [JsonProperty("rankedSeason")]
         public string SeasonRaw { get; set; }
+    }
+    public class ApexBadge
+    {
+        public string Name { get; set; }
+        public int Value { get; set; }
     }
 }
