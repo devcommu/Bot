@@ -9,8 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-using RiotSharp;
-
+using Camille.RiotGames;
 namespace DevCommuBot.Services
 {
     public class UtilService
@@ -31,7 +30,7 @@ namespace DevCommuBot.Services
         public readonly Color EmbedColor = new(19, 169, 185);
 
         public readonly Dictionary<ulong, long> CreateroleCooldown = new();
-        public readonly RiotApi Riot;
+        public readonly RiotGamesApi Riot;
         private readonly IConfigurationRoot _config;
 
         public UtilService(IServiceProvider services)
@@ -40,7 +39,7 @@ namespace DevCommuBot.Services
             _logger = services.GetRequiredService<ILogger<GuildService>>();
             _config = services.GetRequiredService<IConfigurationRoot>();
             // For now it only accept development instance wich must be renew each day.
-            Riot = RiotApi.GetDevelopmentInstance(_config["riotToken"]);
+            Riot = RiotGamesApi.NewInstance(_config["riotToken"]);
         }
 
         public SocketGuild GetGuild()

@@ -1,14 +1,15 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
+
+using Camille.Enums;
+using Camille.RiotGames;
+using Camille.RiotGames.SummonerV4;
 
 using DevCommuBot.Services;
 
 using Discord.Interactions;
 
 using Microsoft.Extensions.Logging;
-
-using RiotSharp;
-using RiotSharp.Endpoints.SummonerEndpoint;
-using RiotSharp.Misc;
 
 namespace DevCommuBot.Commands
 {
@@ -18,35 +19,39 @@ namespace DevCommuBot.Commands
         public ILogger<LeagueStatsCommand> Logger { get; set; }
 
         [SlashCommand("leaguestat", "Obtenir des informations à propos d'un joueur")]
-        public async Task GetStat([Summary("summonerName", "SUMMONER DU JOUEUR")] string pseudo, Region region = Region.Euw)
+        public async Task GetStat([Summary("summonerName", "SUMMONER DU JOUEUR")] string pseudo, PlatformRoute region = PlatformRoute.EUW1)
         {
-            Summoner summoner;
-            try
+            await RespondAsync($"> Récupération des données pour l'utilisateur *{pseudo}*#{region}");
+            Summoner summoner = await Utils.Riot.SummonerV4().GetBySummonerNameAsync(region, pseudo);
+            Logger.LogDebug("Réponse reçu");
+            if (summoner is null)
             {
-                summoner = await Utils.Riot.Summoner.GetSummonerByNameAsync(region, pseudo);
-
-            }catch(RiotSharpException ex)
-            {
-                Logger.LogError($"Error in LeagueStat (Summoner): {ex.Message}");
-                await RespondAsync("Cet utilisateur n'existe pas?");
-                    return;
+                await ModifyOriginalResponseAsync(m =>
+                {
+                    m.Content = "Cet utilisateur n'existe pas";
+                });
+                return;
             }
-            if(summoner.Level< 30)
+            if (summoner.SummonerLevel < 30)
             {
                 //under level 30 no ranked
-                await RespondAsync($"{summoner.Name} est niveau {summoner.Level}! Il n'a pas encore accès au ranked!");
+                await ModifyOriginalResponseAsync(x=>x.Content=$"{summoner.Name} est niveau {summoner.SummonerLevel}! Il n'a pas encore accès au ranked!");
                 return;
             }
-            try
+            await ModifyOriginalResponseAsync(m => m.Content = $"{summoner.Name} est niveau {summoner.SummonerLevel}!\n> Récupération des ranked....");
+            var leagues = await Utils.Riot.LeagueV4().GetLeagueEntriesForSummonerAsync(region, summoner.Id);
+            if (leagues is null)
             {
-                var league = await Utils.Riot.League.GetLeagueEntriesBySummonerAsync(region, summoner.Id);
-                await RespondAsync($"{summoner.Name} est niveau {summoner.Level} Rank: {league[0].Tier} {league[0].Rank} avec {league[0].LeaguePoints} PL");
-            }catch(RiotSharpException ex)
-            {
-                Logger.LogError($"Error in LeagueStat (League): {ex.Message}");
-                await RespondAsync($"{summoner.Name} est niveau {summoner.Level}! Il m'est impossible d'accéder à son classement || il a pas fait ses games de placement la honte ||!");
+                await ModifyOriginalResponseAsync(m=>m.Content=$"{summoner.Name} est niveau {summoner.SummonerLevel}! Il m'est impossible d'accéder à son classement || il a pas fait ses games de placement la honte ||!");
                 return;
             }
+            var league = leagues.FirstOrDefault(l => l.QueueType == QueueType.RANKED_SOLO_5x5);
+            if(league is null)
+            {
+                await ModifyOriginalResponseAsync(m => m.Content = $"{summoner.Name} est niveau {summoner.SummonerLevel}! Il m'est impossible d'accéder à son classement solo || Il joue en flex mdr... ||!");
+                return;
+            }
+            await ModifyOriginalResponseAsync(m=>m.Content=$"{summoner.Name} est niveau {summoner.SummonerLevel} Rang: {league.Tier} {league.Rank} avec {league.LeaguePoints} PL");
         }
     }
 }
