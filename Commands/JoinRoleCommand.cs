@@ -32,6 +32,10 @@ namespace DevCommuBot.Commands
             {
                 role = Utils.GetGuild().GetRole(UtilService.ROLE_GAMING_ID);
             }
+            else if (roleName == "devchats")
+            {
+                role = Utils.GetGuild().GetRole(UtilService.ROLE_DEVCHATS_ID);
+            }
             else
             {
                 RespondAsync("Weird?", ephemeral: true);

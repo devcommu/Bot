@@ -57,7 +57,8 @@ namespace DevCommuBot.Services
                     .WithMinValues(1)
                     .WithMaxValues(1)
                     .AddOption("Projects", "projects", "Accès aux notification de webhook(inutile)")
-                    .AddOption("Gaming", "gaming", "Obtenez le role gaming et devenez cool (imo)");
+                    .AddOption("Gaming", "gaming", "Obtenez le role gaming et devenez cool (imo)")
+                    .AddOption("Developer Chats", "devchats", "Accédez à un salon sous estimé de la communauté");
 
                 var builder = new ComponentBuilder()
                     .WithSelectMenu(menuBuilder);
@@ -156,8 +157,8 @@ namespace DevCommuBot.Services
             var embedMessage = new EmbedBuilder()
                 .WithAuthor(member)
                 .WithColor(_util.EmbedColor)
-                .WithDescription("Welcome!")
-                .WithFooter($"We are now {member.Guild.MemberCount} members.")
+                .WithDescription("Bienvenue!")
+                .WithFooter($"Nous sommes maintenant {member.Guild.MemberCount} membres.")
                 .Build();
             _util.GetWelcomeChannel().SendMessageAsync(embed: embedMessage);
             return Task.CompletedTask;

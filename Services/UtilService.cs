@@ -26,6 +26,7 @@ namespace DevCommuBot.Services
         public const ulong ROLE_PROJECTS_ID = 874785049516605491;
         public const ulong ROLE_GAMING_ID = 875757898087678034;
         public const ulong ROLE_BOOSTERS_ID = 642107269940772871; //Role created by Discord
+        public const ulong ROLE_DEVCHATS_ID = 1005237731309404170; 
 
         public readonly Color EmbedColor = new(19, 169, 185);
 
