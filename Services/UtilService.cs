@@ -22,11 +22,14 @@ namespace DevCommuBot.Services
         public const ulong CHANNEL_LOGS_ID = 875824516675305502;
         public const ulong CHANNEL_BOOSTERS_ID = 764467968490864691;
         public const ulong CHANNEL_WELCOME_ID = 881262458398986280;
+        public const ulong CHANNEL_STARBOARD_ID = 990223161331167322;
 
         public const ulong ROLE_PROJECTS_ID = 874785049516605491;
         public const ulong ROLE_GAMING_ID = 875757898087678034;
         public const ulong ROLE_BOOSTERS_ID = 642107269940772871; //Role created by Discord
-        public const ulong ROLE_DEVCHATS_ID = 1005237731309404170; 
+        public const ulong ROLE_DEVCHATS_ID = 1005237731309404170;
+
+        public const int MIN_REACTION_STARBOARD = 5;
 
         public readonly Color EmbedColor = new(19, 169, 185);
 
@@ -46,6 +49,10 @@ namespace DevCommuBot.Services
         public SocketGuild GetGuild()
             => _client.Guilds.FirstOrDefault(g => g.Id == GUILD_ID);
 
+        /// <summary>
+        /// Return allowed channels for earning points
+        /// </summary>
+        /// <returns></returns>
         public List<SocketGuildChannel> GetAllowedChannels()
             => new()
             {
@@ -78,6 +85,8 @@ namespace DevCommuBot.Services
 
         public SocketTextChannel GetWelcomeChannel()
             => _client.GetChannel(CHANNEL_WELCOME_ID) as SocketTextChannel;
+        public SocketTextChannel GetStarboardChannel()
+            => _client.GetChannel(CHANNEL_STARBOARD_ID) as SocketTextChannel;
 
         public void SendLog(string title, string description, SocketGuildUser author = null)
         {

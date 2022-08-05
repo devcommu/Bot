@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -36,6 +37,31 @@ namespace DevCommuBot.Services
             _client.InteractionCreated += OnInteraction;*/
             _client.GuildMemberUpdated += OnGuildUpdate;
             _client.MessageReceived += OnMessageReceive;
+            _client.ReactionAdded += OnReactionAdded;
+        }
+
+        private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
+        {
+            if (!message.HasValue)
+                await message.DownloadAsync();
+            if (channel.HasValue)
+                await channel.DownloadAsync();
+            if(_util.GetAllowedChannels().First(c=>c.Id == channel.Id) is null)
+            {
+                //React can be counted
+                if(reaction.Emote.Name == "⭐")
+                {
+                    //Stared
+                    if(!message.Value.Reactions.FirstOrDefault(r=>r.Key.Name == "⭐").Equals(default))
+                    {
+                        var reactions = message.Value.Reactions.FirstOrDefault(r => r.Key.Name == "⭐").Value;
+                        if(reactions.ReactionCount > UtilService.MIN_REACTION_STARBOARD)
+                        {
+                            //TODO:
+                        }
+                    }
+                }
+            }
         }
 
         private async Task OnClientReady()
