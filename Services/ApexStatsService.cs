@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -98,7 +99,7 @@ namespace DevCommuBot.Services
         [JsonProperty("arena")]
         public GlobalRankStats Arena { get; set; }
         [JsonProperty("badges")]
-        public List<ApexBadges> Badges { get; set; }
+        public List<ApexBadge> Badges { get; set; }
     }
     public class Realtime
     {
