@@ -51,7 +51,9 @@ namespace DevCommuBot.Services
                 //React can be counted
                 if(reaction.Emote.Name == "⭐")
                 {
-                    //Stared
+                    //Stared a message in starboard channel(how it is possible)
+                    if (channel.Id == UtilService.CHANNEL_STARBOARD_ID)
+                        return; 
                     if(!message.Value.Reactions.FirstOrDefault(r=>r.Key.Name == "⭐").Equals(default))
                     {
                         var reactions = message.Value.Reactions.FirstOrDefault(r => r.Key.Name == "⭐").Value;
