@@ -20,7 +20,7 @@ namespace DevCommuBot.Services
         private readonly UtilService _util;
         private readonly PointService _pointService;
         private readonly DataService _database;
-
+        private Dictionary<ulong, int> StarboardMessages = new(); // ulong => message id , int => number of star
         public GuildService(IServiceProvider services)
         {
             _config = services.GetRequiredService<IConfigurationRoot>();
@@ -59,6 +59,10 @@ namespace DevCommuBot.Services
                         var reactions = message.Value.Reactions.FirstOrDefault(r => r.Key.Name == "⭐").Value;
                         if(reactions.ReactionCount > UtilService.MIN_REACTION_STARBOARD)
                         {
+                            //Message has already been submited to Starboard
+                            //TODO: Update count of star in messages
+                            if (StarboardMessages.ContainsKey(message.Id))
+                                return;
                             //TODO:
                         }
                     }
