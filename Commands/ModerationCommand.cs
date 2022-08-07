@@ -26,7 +26,7 @@ namespace DevCommuBot.Commands
         [SlashCommand("moderation star", "moderate starboard"), RequireUserPermission(Discord.GuildPermission.Administrator)]
         public async Task ModerateStarboard(SocketGuildUser moderator, [Summary("MessageId", "L'id du message posté dans le starboard")]ulong messageId, [Summary("Status", "Nouveau status a attribué au message")] StarboardEntryStatus status)
         {
-            //TODO
+            //TODO  
         }
     }
 }

@@ -72,5 +72,10 @@ namespace DevCommuBot.Services
         }
         #endregion
         #region Starboard
+        public async Task GetStarboardEntry(ulong messageId)
+        {
+
+        }
+        #endregion
     }
 }
