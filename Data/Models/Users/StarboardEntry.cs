@@ -10,6 +10,9 @@ namespace DevCommuBot.Data.Models.Users
         [Key]
         public int Id { get; set; }
         public ulong AuthorId { get; set; }
+        /// <summary>
+        /// Original Message Id
+        /// </summary>
         public ulong MessageId { get; set; }
         public ulong ChannelId { get; set; }
         /// <summary>

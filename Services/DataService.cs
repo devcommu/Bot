@@ -7,6 +7,7 @@ using DevCommuBot.Data.Models.Users;
 using DevCommuBot.Data.Models.Warnings;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -72,10 +73,20 @@ namespace DevCommuBot.Services
         }
         #endregion
         #region Starboard
-        public async Task GetStarboardEntry(ulong messageId)
+        public Task<StarboardEntry?> GetStarboardEntry(ulong messageId, EntryType entryType)
         {
-
+            return entryType switch
+            {
+                EntryType.OriginalMessage => _dataContext.Starboards.FirstOrDefaultAsync(st => st.StarboardMessageId == messageId),
+                EntryType.Message => _dataContext.Starboards.FirstOrDefaultAsync(st => st.MessageId == messageId),
+                _ => null,
+            };
         }
         #endregion
+    }
+    enum EntryType
+    {
+        OriginalMessage,
+        Message,
     }
 }
