@@ -46,12 +46,12 @@ namespace DevCommuBot.Services
                 _logger.LogDebug("Finished Registering commands.");
                 if (x.IsFaulted)
                 {
-                    _logger.LogDebug("Une Errreur survenue");
-                    _logger.LogDebug(x.Exception.Message);
+                    _logger.LogError("Une Errreur est survenue");
+                    _logger.LogError(x.Exception.Message);
                 }
-                _logger.LogDebug($"Status: {x.Status}");
+                _logger.LogDebug($"Status: {x.Status} ET: {x.Result is null}");
                 if (x.Exception != null)
-                    _logger.LogDebug(x.Exception.Message);
+                    _logger.LogError($"Exception: {x.Exception.InnerException.Message}");
 
                 if (x.IsCompletedSuccessfully)
                 {

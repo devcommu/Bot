@@ -1,4 +1,5 @@
 ﻿{
   "token": "YOUR TOKEN",
-  "riotToken" :  "YOUR RIOT TOKEN"
+  "riotToken": "YOUR RIOT TOKEN",
+  "apexToken":  "YOUR APEX TOKEN"
 }
