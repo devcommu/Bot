@@ -46,7 +46,7 @@ namespace DevCommuBot.Services
                 await message.DownloadAsync();
             if (channel.HasValue)
                 await channel.DownloadAsync();
-            if(_util.GetAllowedChannels().First(c=>c.Id == channel.Id) is null)
+            if(_util.GetAllowedChannels().First(c=>c!.Id == channel.Id) is null)
             {
                 //React can be counted
                 if(reaction.Emote.Name == "⭐")

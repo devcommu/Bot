@@ -47,6 +47,7 @@ namespace DevCommuBot
                 .AddSingleton<LoggerService>()
                 .AddSingleton<UtilService>()
                 .AddSingleton<GuildService>()
+                .AddSingleton<ForumService>()
                 .AddDbContext<DataContext>()
                 .AddSingleton<DataService>()
                 .AddSingleton<PointService>()
@@ -62,6 +63,7 @@ namespace DevCommuBot
             serviceProvider.GetRequiredService<CommandHandler>();
 
             serviceProvider.GetRequiredService<GuildService>();
+            serviceProvider.GetRequiredService<ForumService>();
             await Task.Delay(-1);
         }
 

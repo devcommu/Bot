@@ -45,7 +45,11 @@ namespace DevCommuBot.Services
                 return;
             }
         }
-
+        /// <summary>
+        /// Check if a message is valid
+        /// </summary>
+        /// <param name="msg">Message sent by user</param>
+        /// <returns>true if valid</returns>
         public bool IsValid(SocketUserMessage msg)
         {
             //vérification du channel
@@ -66,16 +70,6 @@ namespace DevCommuBot.Services
         {
             var messArray = message.Split(' ');
             return !messArray.Any(_Badwords.Contains);
-            //REPLACED
-            /*bool found = false;
-            foreach (var mess in messArray)
-            {
-                if (_Badwords.Contains(mess))
-                {
-                    found = true;
-                }
-            }
-            return found;*/
         }
 
         private List<string> ReadFile()

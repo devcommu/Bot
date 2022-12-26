@@ -17,7 +17,7 @@ namespace DevCommuBot.Services
         private readonly CommandService _commands;
         private readonly IConfigurationRoot _config;
         private readonly IServiceProvider _services;
-
+        private readonly UtilService utilService;
         public StartupService(IServiceProvider services)
         {
             _services = services;
@@ -42,7 +42,7 @@ namespace DevCommuBot.Services
 
         private async Task OnReady()
         {
-            await _discord.SetGameAsync($"Am i on?");
+            await _discord.SetGameAsync($"Maybe reading r/piracy");
         }
     }
 }

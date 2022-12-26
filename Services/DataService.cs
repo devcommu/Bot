@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 using DevCommuBot.Data;
+using DevCommuBot.Data.Models.Forums;
 using DevCommuBot.Data.Models.Users;
 using DevCommuBot.Data.Models.Warnings;
+
+using Discord;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -81,6 +85,49 @@ namespace DevCommuBot.Services
                 EntryType.Message => _dataContext.Starboards.FirstOrDefaultAsync(st => st.MessageId == messageId),
                 _ => null,
             };
+        }
+        #endregion
+        #region FORUM
+        public async Task CreateForum(ulong forumId, ForumTag tag)
+        {
+            await _dataContext.Forums.AddAsync(new Forum
+            {
+                ChannelId = forumId,
+                ClosedTag = tag,
+            });
+            await _dataContext.SaveChangesAsync();
+        }
+        public async Task<Forum> GetForum(ulong forumId)
+            => await _dataContext.Forums
+            .Include(f => f.ClosedTag)
+            .Include(f => f.Moderators)
+            .FirstOrDefaultAsync(f => f.ChannelId == forumId);
+        public async Task UpdateForum(ulong forumId, ICollection<ForumRules> rules)
+        {
+            var forum = await GetForum(forumId);
+            if (forum == null)
+            {
+                _ = new ArgumentException("Forum does not exist");
+                return;
+            }
+            forum.Rules = rules;
+            _dataContext.Forums.Update(forum);
+            await _dataContext.SaveChangesAsync();
+        }
+        public async Task UpdateForum(ulong forumId, string name = "", string description = "")
+        {
+            var forum = await GetForum(forumId);
+            if (forum == null)
+            {
+                _ = new ArgumentException("Forum does not exist");
+                return;
+            }
+            if (name != "")
+                forum.Name = name;
+            if (description != "")
+                forum.MessageDescription = description;
+            _dataContext.Forums.Update(forum);
+            await _dataContext.SaveChangesAsync();
         }
         #endregion
     }

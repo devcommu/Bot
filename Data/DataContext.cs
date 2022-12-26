@@ -1,4 +1,5 @@
-﻿using DevCommuBot.Data.Models.Users;
+﻿using DevCommuBot.Data.Models.Forums;
+using DevCommuBot.Data.Models.Users;
 using DevCommuBot.Data.Models.Warnings;
 
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ namespace DevCommuBot.Data
         public DbSet<Warning> Warnings { get; set; }
         public DbSet<UserWarning> UserWarnings { get; set; }
         public DbSet<StarboardEntry> Starboards { get; set; }
+        public DbSet<Forum> Forums { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlite("Data Source=Data.db");

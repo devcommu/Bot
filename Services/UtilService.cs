@@ -10,6 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using Camille.RiotGames;
+using System.Threading.Tasks;
+
 namespace DevCommuBot.Services
 {
     public class UtilService
@@ -34,6 +36,7 @@ namespace DevCommuBot.Services
         public readonly Color EmbedColor = new(19, 169, 185);
 
         public readonly Dictionary<ulong, long> CreateroleCooldown = new();
+        public Dictionary<ulong, List<ulong>> Giveaways = new(); // <message id, List<user>>
         public readonly RiotGamesApi Riot;
         private readonly IConfigurationRoot _config;
 
@@ -42,8 +45,30 @@ namespace DevCommuBot.Services
             _client = services.GetRequiredService<DiscordSocketClient>();
             _logger = services.GetRequiredService<ILogger<UtilService>>();
             _config = services.GetRequiredService<IConfigurationRoot>();
-            // For now it only accept development instance wich must be renew each day.
             Riot = RiotGamesApi.NewInstance(_config["riotToken"]);
+            _client.ButtonExecuted += OnButtonExecuted;
+        }
+
+        private Task OnButtonExecuted(SocketMessageComponent cmp)
+        {
+            if (Giveaways.ContainsKey(cmp.Message.Id))
+            {
+                //Giveaway
+                if (Giveaways[cmp.Message.Id].Contains(cmp.User.Id))
+                {
+                    cmp.RespondAsync("Vous êtes déjà inscris!", ephemeral: true);
+                }
+                else
+                {
+                    Giveaways[cmp.Message.Id].Add(cmp.User.Id);
+                    cmp.RespondAsync("Enregistré!", ephemeral: true);
+                }
+            }
+            else
+            {
+                cmp.RespondAsync("Désolé, pas pris en compte", ephemeral: true);
+            }
+            return Task.CompletedTask;
         }
 
         public SocketGuild GetGuild()
