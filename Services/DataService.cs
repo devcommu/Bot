@@ -11,7 +11,6 @@ using DevCommuBot.Data.Models.Warnings;
 using Discord;
 
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -55,8 +54,10 @@ namespace DevCommuBot.Services
             .FirstOrDefaultAsync(u => u.UserId == userId);
 
         #endregion USER
+
         #region WARN
-        public async Task WarnUser(User victime,ulong authorId, string details, WarningReason reasontype = WarningReason.NO_REASON)
+
+        public async Task WarnUser(User victime, ulong authorId, string details, WarningReason reasontype = WarningReason.NO_REASON)
         {
             var warning = new Warning()
             {
@@ -75,8 +76,11 @@ namespace DevCommuBot.Services
             });
             await _dataContext.SaveChangesAsync();
         }
-        #endregion
+
+        #endregion WARN
+
         #region Starboard
+
         public Task<StarboardEntry?> GetStarboardEntry(ulong messageId, EntryType entryType)
         {
             return entryType switch
@@ -86,8 +90,11 @@ namespace DevCommuBot.Services
                 _ => null,
             };
         }
-        #endregion
+
+        #endregion Starboard
+
         #region FORUM
+
         public async Task CreateForum(ulong forumId, ForumTag tag)
         {
             await _dataContext.Forums.AddAsync(new Forum
@@ -97,12 +104,14 @@ namespace DevCommuBot.Services
             });
             await _dataContext.SaveChangesAsync();
         }
+
         public async Task<Forum> GetForum(ulong forumId)
             => await _dataContext.Forums
             .Include(f => f.ClosedTag)
             .Include(f => f.Moderators)
             .FirstOrDefaultAsync(f => f.ChannelId == forumId);
-        public async Task UpdateForum(ulong forumId, ICollection<ForumRules> rules)
+
+        /*public async Task UpdateForum(ulong forumId)
         {
             var forum = await GetForum(forumId);
             if (forum == null)
@@ -110,10 +119,10 @@ namespace DevCommuBot.Services
                 _ = new ArgumentException("Forum does not exist");
                 return;
             }
-            forum.Rules = rules;
             _dataContext.Forums.Update(forum);
             await _dataContext.SaveChangesAsync();
-        }
+        }*/
+
         public async Task UpdateForum(ulong forumId, string name = "", string description = "")
         {
             var forum = await GetForum(forumId);
@@ -129,9 +138,11 @@ namespace DevCommuBot.Services
             _dataContext.Forums.Update(forum);
             await _dataContext.SaveChangesAsync();
         }
-        #endregion
+
+        #endregion FORUM
     }
-    enum EntryType
+
+    internal enum EntryType
     {
         OriginalMessage,
         Message,

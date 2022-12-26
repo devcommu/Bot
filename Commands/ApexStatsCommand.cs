@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using DevCommuBot.Services;
 
@@ -19,16 +15,16 @@ namespace DevCommuBot.Commands
         public ApexStatsService ApexService { get; set; }
 
         [SlashCommand("apex", "obtenir les statistiques d'un joueur apex")]
-        public async Task ApexCommand([Summary("PlayerName", "Nom du joueur apex")] string playername, [Summary("Console", "Sur quelle console cherché")]ApexStatConsole console)
+        public async Task ApexCommand([Summary("PlayerName", "Nom du joueur apex")] string playername, [Summary("Console", "Sur quelle console cherché")] ApexStatConsole console)
         {
             await RespondAsync("Chargement de la réponse: <a:compteur:764900344462311445>");
             var reply = await GetOriginalResponseAsync();
             Logger.LogDebug("Envoie de la requête!");
             var apexStats = await ApexService.GetApexStats(playername, console);
             Logger.LogDebug("Requête envoyé!");
-            if(apexStats.Error is not null)
+            if (apexStats.Error is not null)
             {
-                await reply.ModifyAsync(r=>r.Content = $"> **Une erreur est survenue!**\n{apexStats.Error}");
+                await reply.ModifyAsync(r => r.Content = $"> **Une erreur est survenue!**\n{apexStats.Error}");
             }
             else
             {
@@ -46,7 +42,6 @@ namespace DevCommuBot.Commands
                     .WithFooter("Data from Apex Legends Status")
                     .Build();
                     r.Embed = embed;
-
                 });
             }
         }

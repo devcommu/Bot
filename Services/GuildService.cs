@@ -21,6 +21,7 @@ namespace DevCommuBot.Services
         private readonly PointService _pointService;
         private readonly DataService _database;
         private Dictionary<ulong, int> StarboardMessages = new(); // ulong => message id , int => number of star
+
         public GuildService(IServiceProvider services)
         {
             _config = services.GetRequiredService<IConfigurationRoot>();
@@ -46,18 +47,18 @@ namespace DevCommuBot.Services
                 await message.DownloadAsync();
             if (channel.HasValue)
                 await channel.DownloadAsync();
-            if(_util.GetAllowedChannels().First(c=>c!.Id == channel.Id) is null)
+            if (_util.GetAllowedChannels().First(c => c!.Id == channel.Id) is null)
             {
                 //React can be counted
-                if(reaction.Emote.Name == "⭐")
+                if (reaction.Emote.Name == "⭐")
                 {
                     //Stared a message in starboard channel(how it is possible)
                     if (channel.Id == UtilService.CHANNEL_STARBOARD_ID)
-                        return; 
-                    if(!message.Value.Reactions.FirstOrDefault(r=>r.Key.Name == "⭐").Equals(default))
+                        return;
+                    if (!message.Value.Reactions.FirstOrDefault(r => r.Key.Name == "⭐").Equals(default))
                     {
                         var reactions = message.Value.Reactions.FirstOrDefault(r => r.Key.Name == "⭐").Value;
-                        if(reactions.ReactionCount > UtilService.MIN_REACTION_STARBOARD)
+                        if (reactions.ReactionCount > UtilService.MIN_REACTION_STARBOARD)
                         {
                             //Message has already been submited to Starboard
                             //TODO: Update count of star in messages
@@ -72,13 +73,12 @@ namespace DevCommuBot.Services
 
         private async Task OnClientReady()
         {
-            var channel = _util.GetGuild().GetTextChannel(738875544858525829);
+            var channel = _util.GetGuild().GetTextChannel(UtilService.CHANNEL_ROLES_ID);
             var obj = await channel.GetMessagesAsync(limit: 5).ToListAsync();
             var messages = obj[0];
             var message = messages.Where(m => m.Author.Id == _client.CurrentUser.Id)?.FirstOrDefault();
-            if(message != null)
+            if (message != null)
             {
-
             }
             else
             {
@@ -90,11 +90,13 @@ namespace DevCommuBot.Services
                     .WithMaxValues(1)
                     .AddOption("Projects", "projects", "Accès aux notification de webhook(inutile)")
                     .AddOption("Gaming", "gaming", "Obtenez le role gaming et devenez cool (imo)")
-                    .AddOption("Developer Chats", "devchats", "Accédez à un salon sous estimé de la communauté");
+                    .AddOption("Developer Chats", "devchats", "Accédez à un salon sous estimé de la communauté")
+                    .AddOption("Free Games", "free-games", "Accédez à un salon de jeux gratuits")
+                    .AddOption("Discord Games", "discord-games", "Accédez à un salon de jeux discord(Okureta etc..)");
 
                 var builder = new ComponentBuilder()
                     .WithSelectMenu(menuBuilder);
-                await channel.SendMessageAsync("Choisissez un role:", components: builder.Build());
+                await channel.SendMessageAsync("Récupérez vos rôles ici:", components: builder.Build());
             }
             _client.Ready -= OnClientReady;
         }
@@ -109,7 +111,7 @@ namespace DevCommuBot.Services
                 return Task.CompletedTask;*/
             _pointService.HandleMessage(message);
             //Verfier si ça parle d'hebergeur
-            if(message.Content.Contains("hébergeur") || message.Content.Contains("hebergeur"))
+            if (message.Content.Contains("hébergeur") || message.Content.Contains("hebergeur"))
             {
                 //verifier perm user
             }
@@ -130,23 +132,7 @@ namespace DevCommuBot.Services
                     //A roles have been removed to member
                     if (removed.Any(r => r.Id == UtilService.ROLE_BOOSTERS_ID))
                     {
-                        //user is not boosting any more
-                        var roles = "";
-                        member.Roles.ToList().ForEach(r =>
-                        {
-                            roles += $"{r.Mention} \n";
-                        });
-                        _util.SendLog($"{member} a retiré son boost", $"> Il avait ses roles:\n{roles}", member);
-                        //Check if user had a custom role:
-                        if (_util.HasCustomRole(member))
-                        {
-                            //user had a custom role
-                            var customRole = member.Roles.First(r => r.Position > _util.GetBoostersRole().Position);
-                            await member.RemoveRoleAsync(customRole, options: new()
-                            {
-                                AuditLogReason = "Le joueur ne boost plus"
-                            });
-                            _util.SendLog($"{member} a perdu son role personnalisé", $"Role: {customRole}\n Raison: Ne boost plus", member);                        }
+                        await _util.MemberUnboosted(member);
                     }
                 }
                 if (added.Count is not 0)
@@ -161,7 +147,7 @@ namespace DevCommuBot.Services
                             .WithDescription("> **Merci d'avoir boosté!!!**\nEn boostant vous avez accès à la commande `/createrole` vous permettant de créer votre propre rôle")
                             .WithCurrentTimestamp()
                             .Build();
-                        _util.GetBoostersChannel().SendMessageAsync(text: member.Mention, embed: embed);
+                        await _util.GetBoostersChannel().SendMessageAsync(text: $"Merci d'avoir booster le discord {member.Mention}", embed: embed);
                     }
                 }
             }
@@ -176,7 +162,6 @@ namespace DevCommuBot.Services
             }
             return Task.CompletedTask;
         }
-
 
         private Task OnUserLeft(SocketGuild member)
         {

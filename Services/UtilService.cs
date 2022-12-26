@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+
+using Camille.RiotGames;
 
 using Discord;
 using Discord.WebSocket;
@@ -8,9 +11,6 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-
-using Camille.RiotGames;
-using System.Threading.Tasks;
 
 namespace DevCommuBot.Services
 {
@@ -25,11 +25,14 @@ namespace DevCommuBot.Services
         public const ulong CHANNEL_BOOSTERS_ID = 764467968490864691;
         public const ulong CHANNEL_WELCOME_ID = 881262458398986280;
         public const ulong CHANNEL_STARBOARD_ID = 990223161331167322;
+        public const ulong CHANNEL_ROLES_ID = 1056941109877669898;
 
         public const ulong ROLE_PROJECTS_ID = 874785049516605491;
         public const ulong ROLE_GAMING_ID = 875757898087678034;
         public const ulong ROLE_BOOSTERS_ID = 642107269940772871; //Role created by Discord
         public const ulong ROLE_DEVCHATS_ID = 1005237731309404170;
+        public const ulong ROLE_FREEGAMES_ID = 1056927799090348113;// will get pinged when free games are available
+        public const ulong ROLE_DISCORDGAMES_ID = 1057061877563277312; //Play on Okureta
 
         public const int MIN_REACTION_STARBOARD = 5;
 
@@ -51,6 +54,7 @@ namespace DevCommuBot.Services
 
         private Task OnButtonExecuted(SocketMessageComponent cmp)
         {
+            //Giveaway check
             if (Giveaways.ContainsKey(cmp.Message.Id))
             {
                 //Giveaway
@@ -70,7 +74,30 @@ namespace DevCommuBot.Services
             }
             return Task.CompletedTask;
         }
-
+        public async Task MemberUnboosted(SocketGuildUser member)
+        {
+            var roles = "";
+            member.Roles.ToList().ForEach(r =>
+            {
+                roles += $"{r.Mention} \n";
+            });
+            SendLog($"{member} a retiré son boost", $"> Il avait ses roles:\n{roles}", member);
+            //Check if user had a custom role:
+            if (HasCustomRole(member))
+            {
+                //user had a custom role
+                var customRole = member.Roles.First(r => r.Position > GetBoostersRole().Position);
+                await member.RemoveRoleAsync(customRole, options: new()
+                {
+                    AuditLogReason = "Le joueur ne boost plus"
+                });
+                /*await customRole.DeleteAsync(options: new()
+                {
+                    AuditLogReason = "Le joueur ne boost plus"
+                });*/
+                SendLog($"{member} a perdu son role personnalisé", $"> Il possédait le role personnalisé:\n{customRole.Mention}['{customRole.Name}']\n**Suppresion du role requise!**", member);
+            }
+        }
         public SocketGuild GetGuild()
             => _client.Guilds.FirstOrDefault(g => g.Id == GUILD_ID);
 
@@ -110,6 +137,7 @@ namespace DevCommuBot.Services
 
         public SocketTextChannel GetWelcomeChannel()
             => _client.GetChannel(CHANNEL_WELCOME_ID) as SocketTextChannel;
+
         public SocketTextChannel GetStarboardChannel()
             => _client.GetChannel(CHANNEL_STARBOARD_ID) as SocketTextChannel;
 
@@ -130,6 +158,6 @@ namespace DevCommuBot.Services
             => member.Roles.Any(role => role.Position > GetBoostersRole().Position) && member.GuildPermissions.Administrator is not true;
 
         public SocketRole GetCustomRole(SocketGuildUser member)
-            => member.GuildPermissions.Administrator ? null : member.Roles.FirstOrDefault(role => role.Position > GetBoostersRole().Position);
+            => member.GuildPermissions.Administrator ? null : member.Roles.FirstOrDefault(role => role.Position > GetBoostersRole().Position); //Maybe last?
     }
 }

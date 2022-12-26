@@ -8,6 +8,7 @@ namespace DevCommuBot.Data.Models.Users
     internal class StarboardEntry
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public ulong AuthorId { get; set; }
         /// <summary>

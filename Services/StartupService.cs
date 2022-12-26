@@ -18,6 +18,7 @@ namespace DevCommuBot.Services
         private readonly IConfigurationRoot _config;
         private readonly IServiceProvider _services;
         private readonly UtilService utilService;
+
         public StartupService(IServiceProvider services)
         {
             _services = services;

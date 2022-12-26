@@ -19,14 +19,15 @@ namespace DevCommuBot.Commands
         private Timer? _timer;
         private ISocketMessageChannel _channel;
         private ulong _messageId;
-        [SlashCommand("giveaway", "commence un giveaway", runMode:RunMode.Async)]
-        public async Task TheGiveawayCommand([Summary("duree", "Temps durant lequel les utilisateurs peuvent rejoindre (en minutes)")]int duration, [Summary("winner", "Nombre de vainqueur")] int winnerCount, [Summary("texte", "Texte à afficher")] string summary)
+
+        [SlashCommand("giveaway", "commence un giveaway", runMode: RunMode.Async)]
+        public async Task TheGiveawayCommand([Summary("duree", "Temps durant lequel les utilisateurs peuvent rejoindre (en minutes)")] int duration, [Summary("winner", "Nombre de vainqueur")] int winnerCount, [Summary("texte", "Texte à afficher")] string summary)
         {
             Logger.LogDebug("Recu!");
             if ((Context.User as SocketGuildUser).GuildPermissions.Administrator)
             {
                 Logger.LogDebug("Je redige!");
-                await RespondAsync($"Vous avez commencé un évenement avec {winnerCount} vainqueur et d'une durée de {duration}minutes", ephemeral:true);
+                await RespondAsync($"Vous avez commencé un évenement avec {winnerCount} vainqueur et d'une durée de {duration}minutes", ephemeral: true);
                 Logger.LogDebug("Message envoyée!");
 
                 var interac = new ComponentBuilder()
