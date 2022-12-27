@@ -52,7 +52,7 @@ namespace DevCommuBot.Interactions
                 return Task.CompletedTask;
             }
             member.AddRoleAsync(role);
-            RespondAsync($"Vous venez de récuperer le role {role.Name}", ephemeral: true);
+            RespondAsync($"Vous venez de récuperer le role {role.Name}({role.Mention})", ephemeral: true);
             return Task.CompletedTask;
         }
     }

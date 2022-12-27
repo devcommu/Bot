@@ -24,5 +24,4 @@ namespace DevCommuBot.Data.Models.Forums
         public List<ForumEntry> Entries { get; set; } = new();
         public ForumTag ClosedTag { get; set; }
     }
-
 }

@@ -35,23 +35,23 @@ namespace DevCommuBot.Commands
             if (summoner.SummonerLevel < 30)
             {
                 //under level 30 no ranked
-                await ModifyOriginalResponseAsync(x=>x.Content=$"{summoner.Name} est niveau {summoner.SummonerLevel}! Il n'a pas encore accès au ranked!");
+                await ModifyOriginalResponseAsync(x => x.Content = $"{summoner.Name} est niveau {summoner.SummonerLevel}! Il n'a pas encore accès au ranked!");
                 return;
             }
             await ModifyOriginalResponseAsync(m => m.Content = $"{summoner.Name} est niveau {summoner.SummonerLevel}!\n> Récupération des ranked....");
             var leagues = await Utils.Riot.LeagueV4().GetLeagueEntriesForSummonerAsync(region, summoner.Id);
             if (leagues is null)
             {
-                await ModifyOriginalResponseAsync(m=>m.Content=$"{summoner.Name} est niveau {summoner.SummonerLevel}! Il m'est impossible d'accéder à son classement || il a pas fait ses games de placement la honte ||!");
+                await ModifyOriginalResponseAsync(m => m.Content = $"{summoner.Name} est niveau {summoner.SummonerLevel}! Il m'est impossible d'accéder à son classement || il a pas fait ses games de placement la honte ||!");
                 return;
             }
             var league = leagues.FirstOrDefault(l => l.QueueType == QueueType.RANKED_SOLO_5x5);
-            if(league is null)
+            if (league is null)
             {
                 await ModifyOriginalResponseAsync(m => m.Content = $"{summoner.Name} est niveau {summoner.SummonerLevel}! Il m'est impossible d'accéder à son classement solo || Il joue en flex mdr... ||!");
                 return;
             }
-            await ModifyOriginalResponseAsync(m=>m.Content=$"{summoner.Name} est niveau {summoner.SummonerLevel} Rang: {league.Tier} {league.Rank} avec {league.LeaguePoints} PL");
+            await ModifyOriginalResponseAsync(m => m.Content = $"{summoner.Name} est niveau {summoner.SummonerLevel} Rang: {league.Tier} {league.Rank} avec {league.LeaguePoints} PL");
         }
     }
 }

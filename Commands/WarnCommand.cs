@@ -40,7 +40,7 @@ namespace DevCommuBot.Commands
                 return;
             }
             Data.Models.Users.User account = await _database.GetAccount(user.Id);
-            if(account is null)
+            if (account is null)
             {
                 await RespondAsync($"L'utilisateur {user.Username} ne possède pas de compte, création du compte...");
                 await _database.CreateAccount(user.Id);
@@ -49,10 +49,10 @@ namespace DevCommuBot.Commands
             }
             else
                 await RespondAsync($"{user.Mention} a été warn pour \"{modal.Reason}\" par {Context.User.Mention}");
-            await _database.WarnUser(account,Context.User.Id, modal.Reason);
+            await _database.WarnUser(account, Context.User.Id, modal.Reason);
         }
-
     }
+
     public class WarnModal : IModal
     {
         public string Title { get; set; } = "Warn ";
@@ -60,10 +60,9 @@ namespace DevCommuBot.Commands
         [InputLabel("User Id?")]
         [ModalTextInput("warn_id", style: TextInputStyle.Short, placeholder: "04444", maxLength: 30)]
         public string UserId { get; set; }
-         
-        [InputLabel("Reason?")]
-        [ModalTextInput("warn_reason",style: TextInputStyle.Paragraph ,placeholder: "Non", maxLength:30)]
-        public string Reason { get; set; }
 
+        [InputLabel("Reason?")]
+        [ModalTextInput("warn_reason", style: TextInputStyle.Paragraph, placeholder: "Non", maxLength: 30)]
+        public string Reason { get; set; }
     }
 }

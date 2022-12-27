@@ -26,10 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Data.db" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

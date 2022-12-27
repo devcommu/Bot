@@ -5,6 +5,7 @@ using System;
 
 namespace DevCommuBot.Data.Models.Forums
 {
+    [Table("ForumEntry")]
     internal class ForumEntry
     {
         [Key]

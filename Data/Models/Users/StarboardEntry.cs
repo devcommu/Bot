@@ -10,22 +10,29 @@ namespace DevCommuBot.Data.Models.Users
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
+
         public ulong AuthorId { get; set; }
+
         /// <summary>
         /// Original Message Id
         /// </summary>
         public ulong MessageId { get; set; }
+
         public ulong ChannelId { get; set; }
+
         /// <summary>
         /// id of the message sent in starboard channel
         /// </summary>
         public ulong StarboardMessageId { get; set; }
+
         public int Score { get; set; } //Score it gets with reactions
+
         /// <summary>
         /// When did this message reached enough reaction to be posted in starboard
         /// </summary>
         public DateTime ArrivedTime { get; set; }
     }
+
     internal enum StarboardEntryStatus
     {
         VALID,

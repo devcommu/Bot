@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -107,8 +106,7 @@ namespace DevCommuBot.Services
 
         public async Task<Forum> GetForum(ulong forumId)
             => await _dataContext.Forums
-            .Include(f => f.ClosedTag)
-            .Include(f => f.Moderators)
+            .Include(f => f.Entries)
             .FirstOrDefaultAsync(f => f.ChannelId == forumId);
 
         /*public async Task UpdateForum(ulong forumId)

@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 
 using Camille.RiotGames;
 
+using DevCommuBot.Data.Models.Forums;
+
 using Discord;
 using Discord.WebSocket;
 
@@ -17,6 +19,7 @@ namespace DevCommuBot.Services
     public class UtilService
     {
         private readonly DiscordSocketClient _client;
+        private readonly DataService database;
         private readonly ILogger _logger;
 
         public const ulong GUILD_ID = 584987515388428300;
@@ -26,6 +29,8 @@ namespace DevCommuBot.Services
         public const ulong CHANNEL_WELCOME_ID = 881262458398986280;
         public const ulong CHANNEL_STARBOARD_ID = 990223161331167322;
         public const ulong CHANNEL_ROLES_ID = 1056941109877669898;
+        public const ulong CHANNEL_VOSPROJETS_ID = 1027262989428068364;
+        public const ulong CHANNEL_DEBATS_ID = 1028042928121200700;
 
         public const ulong ROLE_PROJECTS_ID = 874785049516605491;
         public const ulong ROLE_GAMING_ID = 875757898087678034;
@@ -48,6 +53,7 @@ namespace DevCommuBot.Services
             _client = services.GetRequiredService<DiscordSocketClient>();
             _logger = services.GetRequiredService<ILogger<UtilService>>();
             _config = services.GetRequiredService<IConfigurationRoot>();
+            database = services.GetRequiredService<DataService>();
             Riot = RiotGamesApi.NewInstance(_config["riotToken"]);
             _client.ButtonExecuted += OnButtonExecuted;
         }
@@ -97,6 +103,60 @@ namespace DevCommuBot.Services
                 });*/
                 SendLog($"{member} a perdu son role personnalisé", $"> Il possédait le role personnalisé:\n{customRole.Mention}['{customRole.Name}']\n**Suppresion du role requise!**", member);
             }
+        }
+        public bool IsAForum(SocketGuildChannel channel)
+        {
+            if (channel is SocketThreadChannel thread)
+                return IsAForum(thread.ParentChannel);
+            //this discord has 2 forums that is not linked to development so it will count as not a forum
+            if (channel.Id is CHANNEL_VOSPROJETS_ID or CHANNEL_DEBATS_ID)
+                return false;
+            return channel is SocketForumChannel;
+        }
+        /// <summary>
+        /// Try to get a forum or create one
+        /// </summary>
+        /// <param name="forum">the forum channel</param>
+        /// <returns>The Forum instance</returns>
+        internal async Task<Forum> ForceGetForum(SocketForumChannel forum)
+        {
+            var forumDb = await database.GetForum(forum.Id);
+            if (forumDb is null)
+            {
+                //Hmm forum created when i was sleeping
+                await forum.ModifyAsync(f =>
+                {
+                    var closedTag = new ForumTagBuilder("Closed", isModerated: true, emoji: new Emoji("🔒")).Build();
+                    if (!f.Tags.IsSpecified)
+                    {
+                        //No Tags will create some
+                        f.Tags = new List<ForumTagProperties>()
+                        {
+                                closedTag
+                        };
+                    }
+                    else
+                    {
+                        var newValue = f.Tags.Value.ToList();
+                        newValue.Add(closedTag);
+                        f.Tags = newValue;
+                    }
+                });
+                var closed = forum.Tags.FirstOrDefault(x => x.Name == "Closed");
+                await database.CreateForum(forum.Id, closed);
+                SendLog("Forum Discovered!", "Registered a new forum!!\n Now adding it to the database.");
+                forumDb = await database.GetForum(forum.Id);
+            }
+            return forumDb;
+        }
+        public bool IsAForum(ISocketMessageChannel channel)
+        {
+            if (channel is SocketThreadChannel thread)
+                return IsAForum(thread.ParentChannel);
+            //this discord has 2 forums that is not linked to development so it will count as not a forum
+            if (channel.Id is CHANNEL_VOSPROJETS_ID or CHANNEL_DEBATS_ID)
+                return false;
+            return channel is SocketForumChannel;
         }
         public SocketGuild GetGuild()
             => _client.Guilds.FirstOrDefault(g => g.Id == GUILD_ID);

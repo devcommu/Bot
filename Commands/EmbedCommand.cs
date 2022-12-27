@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Discord;
 using Discord.Interactions;
@@ -29,6 +25,7 @@ namespace DevCommuBot.Commands
             }
         }
     }
+
     public class EmbedModal : IModal
     {
         public string Title => "Création d'embed";

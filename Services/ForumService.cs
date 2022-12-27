@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using DevCommuBot.Data.Models.Forums;
+
 using Discord;
 using Discord.WebSocket;
 
@@ -23,6 +25,7 @@ namespace DevCommuBot.Services
             _client = services.GetRequiredService<DiscordSocketClient>();
             _logger = services.GetRequiredService<ILogger<ForumService>>();
             _util = services.GetRequiredService<UtilService>();
+            database = services.GetRequiredService<DataService>();
             //Forum posts
             _client.ThreadCreated += OnCreateThread;
             _client.ThreadUpdated += OnThreadUpdate;
@@ -37,38 +40,7 @@ namespace DevCommuBot.Services
             if (newChannel is SocketForumChannel newForum)
             {
                 var oldForum = (SocketForumChannel)oldChannel;
-                var forum = database.GetForum(newForum.Id);
-                if (forum is null)
-                {
-                    //Hmm forum created when i was sleeping
-                    await newForum.ModifyAsync(f =>
-                    {
-                        var closedTag = new ForumTagBuilder("Closed", isModerated: true, emoji: Emote.Parse("🔒")).Build();
-                        if (!f.Tags.IsSpecified)
-                        {
-                            f.Tags = new List<ForumTagProperties>()
-                        {
-                            closedTag
-                        };
-                        }
-                        else
-                        {
-                            var newValue = f.Tags.Value.ToList();
-                            newValue.Add(closedTag);
-                            f.Tags = newValue;
-                        }
-                    });
-                    var closed = newForum.Tags.FirstOrDefault(x => x.Name == "Closed");
-                    _ = database.CreateForum(newForum.Id, closed).ContinueWith(x =>
-                    {
-                        _util.SendLog("Forum Discovered!", "I just discovered a forum that i didnt heard about!!\n Now adding it to the database.");
-                    });
-                }
-                if (oldForum.Name != newForum.Name)
-                {
-                    //Update Name
-                    //Not gonna lie so useless!
-                }
+                var forumDb = await _util.ForceGetForum(newForum);
             }
         }
 
@@ -76,68 +48,18 @@ namespace DevCommuBot.Services
         {
             if (channel is SocketForumChannel forum)
             {
-                //
-                await forum.ModifyAsync(f =>
-                {
-                    var closedTag = new ForumTagBuilder("Closed", isModerated: true, emoji: Emote.Parse("🔒")).Build();
-                    if (!f.Tags.IsSpecified)
-                    {
-                        f.Tags = new List<ForumTagProperties>()
-                        {
-                            closedTag
-                        };
-                    }
-                    else
-                    {
-                        var newValue = f.Tags.Value.ToList();
-                        newValue.Add(closedTag);
-                        f.Tags = newValue;
-                    }
-                });
-                var closed = forum.Tags.FirstOrDefault(x => x.Name == "Closed");
-                _ = database.CreateForum(channel.Id, closed).ContinueWith(x =>
-                {
-                    _util.SendLog("New forum created!", $"Successfully registered the forum in the database! forum named: {forum.Name}");
-                });
+                var forumDb = await _util.ForceGetForum(forum);
             }
         }
 
         private async Task OnThreadMessageReceived(SocketMessage msg)
         {
-            if (msg.Channel is SocketThreadChannel channel)
-            {
-                if (channel.ParentChannel is SocketForumChannel forum)
-                {
-                    var forumDb = database.GetForum(forum.Id);
-                    if (forumDb is null)
-                    {
-                        //Hmm forum created when i was sleeping
-                        await forum.ModifyAsync(f =>
-                        {
-                            var closedTag = new ForumTagBuilder("Closed", isModerated: true, emoji: Emote.Parse("🔒")).Build();
-                            if (!f.Tags.IsSpecified)
-                            {
-                                f.Tags = new List<ForumTagProperties>()
-                                {
-                                    closedTag
-                                };
-                            }
-                            else
-                            {
-                                var newValue = f.Tags.Value.ToList();
-                                newValue.Add(closedTag);
-                                f.Tags = newValue;
-                            }
-                        });
-                        var closed = forum.Tags.FirstOrDefault(x => x.Name == "Closed");
-                        _ = database.CreateForum(forum.Id, closed).ContinueWith(x =>
-                        {
-                            _util.SendLog("Forum Discovered!", "I just discovered a forum that i didnt heard about!!\n Now adding it to the database.");
-                        });
-                    }
-                    //check github link
-                }
-            }
+            if (!_util.IsAForum(msg.Channel))
+                return;
+            var forum = (msg.Channel is SocketThreadChannel thread) ? (SocketForumChannel)thread.ParentChannel : (SocketForumChannel)msg.Channel;
+
+            var forumDb = await _util.ForceGetForum(forum);
+            //check github link
         }
 
         private async Task OnThreadUpdate(Discord.Cacheable<SocketThreadChannel, ulong> oldThreadCached, SocketThreadChannel newThread)
@@ -159,53 +81,26 @@ namespace DevCommuBot.Services
 
         private async Task OnCreateThread(SocketThreadChannel thread)
         {
-            if (thread.ParentChannel is SocketForumChannel forum)
+            if (!_util.IsAForum(thread.ParentChannel))
+                return;
+            var forum = (SocketForumChannel)thread.ParentChannel;
+            _logger.LogDebug("THREAD CREATED in FORUM");
+            await thread.JoinAsync();
+            var forumDb = await _util.ForceGetForum(forum);
+            if (forumDb.MessageDescription != "")
             {
-                _logger.LogDebug("THREAD CREATED in FORUM");
-                await thread.JoinAsync();
-                var forumDb = await database.GetForum(forum.Id);
-                if (forumDb is null)
-                {
-                    //Hmm forum created when i was sleeping
-                    await forum.ModifyAsync(f =>
-                    {
-                        var closedTag = new ForumTagBuilder("Closed", isModerated: true, emoji: Emote.Parse("🔒")).Build();
-                        if (!f.Tags.IsSpecified)
-                        {
-                            f.Tags = new List<ForumTagProperties>()
-                            {
-                                closedTag
-                            };
-                        }
-                        else
-                        {
-                            var newValue = f.Tags.Value.ToList();
-                            newValue.Add(closedTag);
-                            f.Tags = newValue;
-                        }
-                    });
-                    var closed = forum.Tags.FirstOrDefault(x => x.Name == "Closed");
-                    _ = database.CreateForum(forum.Id, closed).ContinueWith(x =>
-                    {
-                        _util.SendLog("Forum Discovered!", "I just discovered a forum that i didnt heard about!!\n Now adding it to the database.");
-                    });
-                    if(forumDb.MessageDescription != "")
-                    {
-                        var embed = new EmbedBuilder()
-                            .WithAuthor(_client.CurrentUser)
-                            .WithTitle("Forum Rules")
-                            .WithDescription(forumDb.MessageDescription)
-                            .WithColor(_util.EmbedColor)
-                            .AddField("Post qui ne respecte pas les règles?", "Mentionnez l'un des modérateurs et il s'en occupera!")
-                            .AddField("Votre problème est résolu?", "> Si une réponse à permis de résoudre votre problème, merci d'utiliser la commande `/forumpost accept id` id correspondant à l'id du message! Si vous avez résolu votre problème tout seul, essayez d'expliquer comment vous avez fait pour aider les autres puis utilisez la même commande pour vous même!")
-                            .WithFooter("Automated messages!")
-                            .WithCurrentTimestamp()
-                            .Build();
-                        var msg = await thread.SendMessageAsync(embed: embed);
-                        await msg.PinAsync();
-                    }
-                }
-
+                var embed = new EmbedBuilder()
+                    .WithAuthor(_client.CurrentUser)
+                    .WithTitle("Forum Rules")
+                    .WithDescription(forumDb.MessageDescription)
+                    .WithColor(_util.EmbedColor)
+                    .AddField("Post qui ne respecte pas les règles?", "Mentionnez l'un des modérateurs et il s'en occupera!")
+                    .AddField("Votre problème est résolu?", "> Si une réponse à permis de résoudre votre problème, merci d'utiliser la commande `/forumpost accept id` id correspondant à l'id du message! Si vous avez résolu votre problème tout seul, essayez d'expliquer comment vous avez fait pour aider les autres puis utilisez la même commande pour vous même!")
+                    .WithFooter("Automated messages!")
+                    .WithCurrentTimestamp()
+                    .Build();
+                var msg = await thread.SendMessageAsync(embed: embed);
+                await msg.PinAsync();
             }
         }
     }

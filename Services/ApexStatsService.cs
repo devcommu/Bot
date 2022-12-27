@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
 using Newtonsoft.Json;
 
 namespace DevCommuBot.Services
@@ -15,6 +16,7 @@ namespace DevCommuBot.Services
         private readonly IConfigurationRoot _config;
         private readonly ILogger _logger;
         private readonly string TOKEN_STATS;
+
         public ApexStatsService(IServiceProvider serviceProvider)
         {
             _config = serviceProvider.GetRequiredService<IConfigurationRoot>();
@@ -31,8 +33,8 @@ namespace DevCommuBot.Services
             var result = await httpClient.GetStringAsync($"bridge?auth={TOKEN_STATS}&player={playerName}&platform={GetConsoleName(console)}");
             ApexStats apexStats = JsonConvert.DeserializeObject<ApexStats>(result);
             return apexStats;
-
         }
+
         /// <summary>
         /// Get console name for API usage
         /// </summary>
@@ -48,6 +50,7 @@ namespace DevCommuBot.Services
             };
         }
     }
+
     public enum ApexStatConsole : int
     {
         PC = 1,
@@ -55,6 +58,7 @@ namespace DevCommuBot.Services
         XBOX,
         SWITCH
     }
+
     public enum ApexRanked : int
     {
         UNRANKED = 0,
@@ -64,71 +68,93 @@ namespace DevCommuBot.Services
         DIAMOND,
         MASTER
     }
+
     public class ApexStats
     {
         [JsonProperty("global")]
         public GlobalStats Global { get; set; }
+
         [JsonProperty("realtime")]
         public Realtime Realtime { get; set; }
+
         [JsonProperty("legends")]
         public object Legends { get; set; }
+
         [JsonProperty("mozambiquehere_internal")]
         public object _internal { get; set; }// skip
+
         [JsonProperty("ALS")]
         public object ALS { get; set; }// skip
+
         [JsonProperty("total")]
         public object Total { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Error { get; set; }
     }
+
     [JsonObject]
     public class GlobalStats
     {
         [JsonProperty("name")]
         public string Name { get; set; }
+
         [JsonProperty("uid")]
         public ulong Uid { get; set; }
 
         public string Platform { get; set; }
 
         public int Level { get; set; }
+
         // TODO: Implement....
         [JsonProperty("rank")]
         public GlobalRankStats Rank { get; set; }
+
         [JsonProperty("arena")]
         public GlobalRankStats Arena { get; set; }
+
         [JsonProperty("badges")]
         public List<ApexBadge> Badges { get; set; }
     }
+
     public class Realtime
     {
         [JsonProperty("lobbyState")]
         public string LobbyState { get; set; } // Lobby can be Opened or closed
+
         [JsonProperty("isOnline")]
         public bool Online { get; set; }
+
         [JsonProperty("isInGame")]
         public bool InGame { get; set; }
+
         [JsonProperty("selectedLegend")]
         public string Legend { get; set; } // Legend Name
+
         [JsonProperty("currentState")]
         public string State { get; set; } // Can be online or offline
+
         [JsonProperty("currentStateAsText")]
         public string StateString { get; set; }
-
     }
+
     public class GlobalRankStats
     {
         [JsonProperty("rankScore")]
         public int Score { get; set; }
+
         [JsonProperty("rankName")]
         public string RankName { get; set; }
+
         [JsonProperty("rankDiv")]
         public int Division { get; set; }
+
         public string RankImg { get; set; }
+
         [JsonProperty("rankedSeason")]
         public string SeasonRaw { get; set; }
     }
+
     public class ApexBadge
     {
         public string Name { get; set; }

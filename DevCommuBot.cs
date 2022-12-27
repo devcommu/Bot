@@ -48,8 +48,8 @@ namespace DevCommuBot
                 .AddSingleton<UtilService>()
                 .AddSingleton<GuildService>()
                 .AddSingleton<ForumService>()
-                .AddDbContext<DataContext>()
                 .AddSingleton<DataService>()
+                .AddDbContext<DataContext>()
                 .AddSingleton<PointService>()
                 .AddSingleton<InteractionService>()
                 .AddSingleton<ApexStatsService>();

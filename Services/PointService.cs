@@ -20,6 +20,7 @@ namespace DevCommuBot.Services
         private readonly Dictionary<ulong, long> MessageCooldown = new();
 
         private readonly List<string> _Badwords = new();
+
         // ------- CONST
         private readonly int MIN_LENGTH = 10;
 
@@ -45,6 +46,7 @@ namespace DevCommuBot.Services
                 return;
             }
         }
+
         /// <summary>
         /// Check if a message is valid
         /// </summary>
