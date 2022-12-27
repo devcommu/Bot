@@ -80,6 +80,7 @@ namespace DevCommuBot.Services
             }
             return Task.CompletedTask;
         }
+
         public async Task MemberUnboosted(SocketGuildUser member)
         {
             var roles = "";
@@ -104,6 +105,7 @@ namespace DevCommuBot.Services
                 SendLog($"{member} a perdu son role personnalisé", $"> Il possédait le role personnalisé:\n{customRole.Mention}['{customRole.Name}']\n**Suppresion du role requise!**", member);
             }
         }
+
         public bool IsAForum(SocketGuildChannel channel)
         {
             if (channel is SocketThreadChannel thread)
@@ -113,6 +115,7 @@ namespace DevCommuBot.Services
                 return false;
             return channel is SocketForumChannel;
         }
+
         /// <summary>
         /// Try to get a forum or create one
         /// </summary>
@@ -149,6 +152,7 @@ namespace DevCommuBot.Services
             }
             return forumDb;
         }
+
         public bool IsAForum(ISocketMessageChannel channel)
         {
             if (channel is SocketThreadChannel thread)
@@ -158,6 +162,7 @@ namespace DevCommuBot.Services
                 return false;
             return channel is SocketForumChannel;
         }
+
         public SocketGuild GetGuild()
             => _client.Guilds.FirstOrDefault(g => g.Id == GUILD_ID);
 

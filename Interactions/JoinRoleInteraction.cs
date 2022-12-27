@@ -38,9 +38,11 @@ namespace DevCommuBot.Interactions
                 case "free-games":
                     role = Utils.GetGuild().GetRole(UtilService.ROLE_FREEGAMES_ID);
                     break;
+
                 case "discord-games":
                     role = Utils.GetGuild().GetRole(UtilService.ROLE_DISCORDGAMES_ID);
                     break;
+
                 default:
                     RespondAsync("Oups! Je n'ai pas trouver le rôle que tu souhaites obtenir! ERR_INTERACTIONS:ROLE_NOT_FOUND", ephemeral: true);
                     return Task.CompletedTask;

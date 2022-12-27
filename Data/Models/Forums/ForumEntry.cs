@@ -1,7 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 using DevCommuBot.Data.Models.Users;
-using System;
 
 namespace DevCommuBot.Data.Models.Forums
 {
@@ -11,11 +12,13 @@ namespace DevCommuBot.Data.Models.Forums
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
+
         public string Name { get; set; }
         public User Author { get; set; }
-        
+
         public DateTime CreatedAt { get; set; }
     }
+
     internal enum ForumRules
     {
         NO_IMAGES,

@@ -18,6 +18,7 @@ namespace DevCommuBot.Data
         public DbSet<StarboardEntry> Starboards { get; set; }
         public DbSet<Forum> Forums { get; set; }
         public DbSet<ForumEntry> ForumEntries { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlite("Data Source=Data.db");
@@ -35,7 +36,7 @@ namespace DevCommuBot.Data
             modelBuilder.Entity<Forum>()
                 .HasMany(f => f.Entries);
             modelBuilder.Entity<Forum>()
-                .Property(f=>f.ClosedTag)
+                .Property(f => f.ClosedTag)
                 .HasConversion(
                 v => JsonConvert.SerializeObject(v),
                 v => JsonConvert.DeserializeObject<ForumTag>(v));
