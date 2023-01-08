@@ -1,13 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 using DevCommuBot.Data;
 using DevCommuBot.Data.Models.Forums;
+using DevCommuBot.Data.Models.Giveaways;
 using DevCommuBot.Data.Models.Users;
 using DevCommuBot.Data.Models.Warnings;
-
-using Discord;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -94,12 +94,11 @@ namespace DevCommuBot.Services
 
         #region FORUM
 
-        public async Task CreateForum(ulong forumId, ForumTag tag)
+        public async Task CreateForum(ulong forumId)
         {
             await _dataContext.Forums.AddAsync(new Forum
             {
                 ChannelId = forumId,
-                ClosedTag = tag,
             });
             await _dataContext.SaveChangesAsync();
         }
@@ -138,6 +137,141 @@ namespace DevCommuBot.Services
         }
 
         #endregion FORUM
+
+        #region GIVEAWAY
+
+        public async Task CreateGiveaway(ulong authorId, ulong messageId, string messageDescription, string wonObject, int amountOfWinners, DateTime startAt, DateTime EndAt, GiveawayState state, GiveawayCondition condition = GiveawayCondition.NO_CONDITION)
+        {
+            await _dataContext.Giveaways.AddAsync(new Giveaway
+            {
+                AuthorId = authorId,
+                MessageId = messageId,
+                MessageDescription = messageDescription,
+                WonObject = wonObject,
+                AmountOfWinners = amountOfWinners,
+                StartAt = startAt,
+                EndAt = EndAt,
+                Condition = condition,
+                State = state
+            });
+            await _dataContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Get Giveaway by message id
+        /// </summary>
+        /// <param name="messageId">message that contains giveaway</param>
+        /// <returns></returns>
+        public Task<Giveaway> GetGiveaway(ulong messageId)
+        {
+            return _dataContext.Giveaways.FirstOrDefaultAsync(g => g.MessageId == messageId);
+        }
+
+        public Task<Giveaway> GetGiveaway(int giveawayId)
+        {
+            return _dataContext.Giveaways.FirstOrDefaultAsync(g => g.Id == giveawayId);
+        }
+
+        public async Task UpdateGiveaway(ulong messageId, string messageDescription = "", string winObject = "", int winners = 0, DateTime startAt = default, DateTime EndAt = default, GiveawayCondition condition = GiveawayCondition.NO_CONDITION, GiveawayState state = default)
+        {
+            var giveaway = await GetGiveaway(messageId);
+            if (giveaway == null)
+            {
+                _ = new ArgumentException("Giveaway does not exist");
+                return;
+            }
+            if (messageDescription != "")
+                giveaway.MessageDescription = messageDescription;
+            if (winObject != "")
+                giveaway.WonObject = winObject;
+            if (winners != giveaway.AmountOfWinners)
+                giveaway.AmountOfWinners = winners;
+            if (startAt != default)
+                giveaway.StartAt = startAt;
+            if (EndAt != default)
+                giveaway.EndAt = EndAt;
+            if (giveaway.Condition != condition && condition != default)
+                giveaway.Condition = condition;
+            if (giveaway.State != state && state != default)
+                giveaway.State = state;
+            _dataContext.Giveaways.Update(giveaway);
+            await _dataContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Get active giveaways
+        /// </summary>
+        /// <returns>List of active giveaways</returns>
+        public Task<List<Giveaway>> GetRunningGiveaways()
+        {
+            return _dataContext.Giveaways.Where(x => x.State == GiveawayState.RUNNING).ToListAsync();
+        }
+
+        /// <summary>
+        /// Add a player to a giveaway
+        /// </summary>
+        /// <param name="messageId">Giveaway message's id</param>
+        /// <param name="userId">Id of user</param>
+        /// <returns></returns>
+        public async Task AddEntryGiveaway(ulong messageId, ulong userId)
+        {
+            var giveaway = await GetGiveaway(messageId);
+            if (giveaway == null)
+            {
+                _ = new ArgumentException("Giveaway does not exist");
+                return;
+            }
+            if (giveaway.State != GiveawayState.RUNNING)
+            {
+                _ = new ArgumentException("Giveaway is not running");
+                return;
+            }
+            giveaway.Participants.Add(userId);
+            _dataContext.Giveaways.Update(giveaway);
+            await _dataContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Add a player to the giveaway
+        /// </summary>
+        /// <param name="giveawayId">Giveaway's id</param>
+        /// <param name="userId">User's Id</param>
+        /// <returns></returns>
+        public async Task AddEntryGiveaway(int giveawayId, ulong userId)
+        {
+            var giveaway = await GetGiveaway(giveawayId);
+            if (giveaway == null)
+            {
+                _ = new ArgumentException("Giveaway does not exist");
+                return;
+            }
+            if (giveaway.State != GiveawayState.RUNNING)
+            {
+                _ = new ArgumentException("Giveaway is not running");
+                return;
+            }
+            giveaway.Participants.Add(userId);
+            _dataContext.Giveaways.Update(giveaway);
+            await _dataContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Get player list that joined a giveaway
+        /// </summary>
+        /// <param name="messageId">Giveaway's message id</param>
+        /// <returns><see cref="null"/> if giveaway do not exist</returns>
+        public async Task<List<ulong>> GetGiveawayEntries(ulong messageId)
+        {
+            var giveaway = await GetGiveaway(messageId);
+            if (giveaway == null)
+            {
+                _ = new ArgumentException("Giveaway does not exist");
+                return null;
+            }
+            return giveaway.Participants;
+        }
+
+        #endregion GIVEAWAY
     }
 
     internal enum EntryType

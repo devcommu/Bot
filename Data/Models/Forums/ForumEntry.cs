@@ -14,8 +14,23 @@ namespace DevCommuBot.Data.Models.Forums
         public int Id { get; set; }
 
         public string Name { get; set; }
+        /// <summary>
+        /// Post's author
+        /// </summary>
         public User Author { get; set; }
+        /// <summary>
+        /// Is the post locked?
+        /// </summary>
+        public bool IsLocked { get; set; } = false;
 
+        /// <summary>
+        /// If post solved indeed
+        /// </summary>
+        public ulong? SolvingMessageId { get; set; } = null;
+
+        /// <summary>
+        /// When was it posted
+        /// </summary>
         public DateTime CreatedAt { get; set; }
     }
 
@@ -28,7 +43,13 @@ namespace DevCommuBot.Data.Models.Forums
         NO_EMOJIS,
         NO_FULLCAPS,
         NO_COMMENTS,
+        /// <summary>
+        /// Discord invite link will be allowed here
+        /// </summary>
         ALLOW_ADS,
+        /// <summary>
+        /// No one should be able to talk after that
+        /// </summary>
         CLOSED
     }
 }

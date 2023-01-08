@@ -1,4 +1,5 @@
 ﻿using DevCommuBot.Data.Models.Forums;
+using DevCommuBot.Data.Models.Giveaways;
 using DevCommuBot.Data.Models.Users;
 using DevCommuBot.Data.Models.Warnings;
 
@@ -18,6 +19,7 @@ namespace DevCommuBot.Data
         public DbSet<StarboardEntry> Starboards { get; set; }
         public DbSet<Forum> Forums { get; set; }
         public DbSet<ForumEntry> ForumEntries { get; set; }
+        public DbSet<Giveaway> Giveaways { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -35,11 +37,6 @@ namespace DevCommuBot.Data
                 .HasForeignKey(uw => uw.UserId);
             modelBuilder.Entity<Forum>()
                 .HasMany(f => f.Entries);
-            modelBuilder.Entity<Forum>()
-                .Property(f => f.ClosedTag)
-                .HasConversion(
-                v => JsonConvert.SerializeObject(v),
-                v => JsonConvert.DeserializeObject<ForumTag>(v));
         }
     }
 }

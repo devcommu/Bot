@@ -106,6 +106,11 @@ namespace DevCommuBot.Services
             }
         }
 
+        /// <summary>
+        /// Check if a channel is a forum channel
+        /// </summary>
+        /// <param name="channel">channel</param>
+        /// <returns>true if channel is a forum</returns>
         public bool IsAForum(SocketGuildChannel channel)
         {
             if (channel is SocketThreadChannel thread)
@@ -145,8 +150,7 @@ namespace DevCommuBot.Services
                         f.Tags = newValue;
                     }
                 });
-                var closed = forum.Tags.FirstOrDefault(x => x.Name == "Closed");
-                await database.CreateForum(forum.Id, closed);
+                await database.CreateForum(forum.Id);
                 SendLog("Forum Discovered!", "Registered a new forum!!\n Now adding it to the database.");
                 forumDb = await database.GetForum(forum.Id);
             }

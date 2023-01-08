@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Discord;
@@ -47,18 +48,18 @@ namespace DevCommuBot.Services
                 var forumDb = await _util.ForceGetForum(forum);
             }
         }
-
         private async Task OnThreadMessageReceived(SocketMessage msg)
         {
             if (!_util.IsAForum(msg.Channel))
                 return;
+            if (msg.Author.IsBot)
+                return;
             var forum = (msg.Channel is SocketThreadChannel thread) ? (SocketForumChannel)thread.ParentChannel : (SocketForumChannel)msg.Channel;
-
             var forumDb = await _util.ForceGetForum(forum);
             //check github link
         }
 
-        private async Task OnThreadUpdate(Discord.Cacheable<SocketThreadChannel, ulong> oldThreadCached, SocketThreadChannel newThread)
+        private async Task OnThreadUpdate(Cacheable<SocketThreadChannel, ulong> oldThreadCached, SocketThreadChannel newThread)
         {
             if (newThread.ParentChannel is SocketForumChannel forum)
             {
@@ -98,6 +99,12 @@ namespace DevCommuBot.Services
                 var msg = await thread.SendMessageAsync(embed: embed);
                 await msg.PinAsync();
             }
+        }
+
+        public static ForumTag? GetClosedTag(SocketForumChannel forum) => GetTag(forum, "Closed");
+        private static ForumTag? GetTag(SocketForumChannel forum, string tagName)
+        {
+            return forum.Tags.FirstOrDefault(ft => ft.Name == tagName);
         }
     }
 }
