@@ -78,8 +78,10 @@ namespace DevCommuBot.Services
 
         #endregion WARN
 
-        #region Starboard
-
+        #region STARBOARD
+        public Task<bool> HasAStarboardEntry(ulong messageId)
+            => _dataContext.Starboards.AnyAsync(m => m.MessageId == messageId);
+        //TODO: Better code!
         public Task<StarboardEntry?> GetStarboardEntry(ulong messageId, EntryType entryType)
         {
             return entryType switch
@@ -90,11 +92,38 @@ namespace DevCommuBot.Services
             };
         }
 
-        #endregion Starboard
+        public async Task CreateStarboardEntry(ulong authorId, ulong messageId, ulong channelId, ulong createdMessageId, int stars = default)
+        {
+            await _dataContext.Starboards.AddAsync(new StarboardEntry
+            {
+                ArrivedTime = DateTime.UtcNow,
+                AuthorId = authorId,
+                ChannelId = channelId,
+                MessageId = messageId,
+                StarboardMessageId = createdMessageId,
+                Score = (stars == default) ? 5 : stars
+            });
+            await _dataContext.SaveChangesAsync();
+        }
+        public async Task UpdateScoreStarboard(StarboardEntry entry, int score)
+        {
+            entry.Score = score;
+            await _dataContext.SaveChangesAsync();
+        }
+        public async Task UpdateScoreStarboard(ulong messageId = default, ulong starboardMessageId = default, int score = default)
+        {
+            var entry = await _dataContext.Starboards.FirstOrDefaultAsync(st => st.MessageId == messageId || st.StarboardMessageId == starboardMessageId);
+            if (entry != null)
+            {
+                entry.Score = score;
+                await _dataContext.SaveChangesAsync();
+            }
+        }
+            #endregion Starboard
 
-        #region FORUM
+            #region FORUM
 
-        public async Task CreateForum(ulong forumId)
+            public async Task CreateForum(ulong forumId)
         {
             await _dataContext.Forums.AddAsync(new Forum
             {

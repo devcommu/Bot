@@ -51,6 +51,7 @@ namespace DevCommuBot
                 .AddSingleton<DataService>()
                 .AddDbContext<DataContext>()
                 .AddSingleton<PointService>()
+                .AddSingleton<StarboardService>()
                 .AddSingleton<InteractionService>()
                 .AddSingleton<ApexStatsService>();
             ConfigureServices(services);
@@ -64,6 +65,7 @@ namespace DevCommuBot
 
             serviceProvider.GetRequiredService<GuildService>();
             serviceProvider.GetRequiredService<ForumService>();
+            serviceProvider.GetRequiredService<StarboardService>();
             await Task.Delay(-1);
         }
 

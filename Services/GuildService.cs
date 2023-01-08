@@ -20,7 +20,6 @@ namespace DevCommuBot.Services
         private readonly UtilService _util;
         private readonly PointService _pointService;
         private readonly DataService _database;
-        private Dictionary<ulong, int> StarboardMessages = new(); // ulong => message id , int => number of star
 
         public GuildService(IServiceProvider services)
         {
@@ -38,37 +37,6 @@ namespace DevCommuBot.Services
             _client.InteractionCreated += OnInteraction;*/
             _client.GuildMemberUpdated += OnGuildUpdate;
             _client.MessageReceived += OnMessageReceive;
-            _client.ReactionAdded += OnReactionAdded;
-        }
-
-        private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
-        {
-            if (!message.HasValue)
-                await message.DownloadAsync();
-            if (channel.HasValue)
-                await channel.DownloadAsync();
-            if (_util.GetAllowedChannels().First(c => c!.Id == channel.Id) is null)
-            {
-                //React can be counted
-                if (reaction.Emote.Name == "⭐")
-                {
-                    //Stared a message in starboard channel(how it is possible)
-                    if (channel.Id == UtilService.CHANNEL_STARBOARD_ID)
-                        return;
-                    if (!message.Value.Reactions.FirstOrDefault(r => r.Key.Name == "⭐").Equals(default))
-                    {
-                        var reactions = message.Value.Reactions.FirstOrDefault(r => r.Key.Name == "⭐").Value;
-                        if (reactions.ReactionCount > UtilService.MIN_REACTION_STARBOARD)
-                        {
-                            //Message has already been submited to Starboard
-                            //TODO: Update count of star in messages
-                            if (StarboardMessages.ContainsKey(message.Id))
-                                return;
-                            //TODO:
-                        }
-                    }
-                }
-            }
         }
 
         private async Task OnClientReady()
@@ -158,6 +126,7 @@ namespace DevCommuBot.Services
         {
             if (arg is SocketMessageComponent component)
             {
+                //TODO: Remove if not found any use
                 //Button Integrations?
             }
             return Task.CompletedTask;
@@ -165,7 +134,7 @@ namespace DevCommuBot.Services
 
         private Task OnUserLeft(SocketGuild member)
         {
-            //zzzzzzzzzzzzzzz
+            //TODO: Find a way to not make it crash when trying to get the user
             return Task.CompletedTask;
         }
 
@@ -174,7 +143,7 @@ namespace DevCommuBot.Services
             var embedMessage = new EmbedBuilder()
                 .WithAuthor(member)
                 .WithColor(_util.EmbedColor)
-                .WithDescription("Bienvenue!")
+                .WithDescription($"Bienvenue {member.Mention}!\n> Merci de nous avoir rejoins n'hésite pas à nous contacter si tu as besoin d'aide.\n\n> *Psst!* Tu devrais penser à prendre tes roles ici: <#1056941109877669898>")
                 .WithFooter($"Nous sommes maintenant {member.Guild.MemberCount} membres.")
                 .Build();
             _util.GetWelcomeChannel().SendMessageAsync(embed: embedMessage);
