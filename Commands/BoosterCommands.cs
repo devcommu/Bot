@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -8,25 +10,35 @@ using DevCommuBot.Services;
 
 using Discord;
 using Discord.Interactions;
+using Discord.Rest;
 using Discord.WebSocket;
 
 using Microsoft.Extensions.Logging;
 
 namespace DevCommuBot.Commands
 {
-    public class CreateRoleCommand : InteractionModuleBase<SocketInteractionContext>
+    [Group("booster", "Commandes pour les boosters")]
+    public class BoosterCommands : InteractionModuleBase<SocketInteractionContext>
     {
         public UtilService Utils { get; set; }
         public ILogger<CommandHandler> Logger { get; set; }
+        internal DataService Database { get; set; }
 
-        [SlashCommand("createrole", "Create your own role [Only for boosted person]")]
-        public async Task CreateCommand([Summary("roleName", "The name of your role")] string name, [Summary("color", "Color of your role in hexadecimal")] string color, string iconUrl = null)
+        [SlashCommand("role", "Create/Modify your custom role")]
+        public async Task CreateRoleCommand([Summary("roleName", "The name of your role")] string name, [Summary("color", "Color of your role in hexadecimal")] string color, string iconUrl = null)
         {
             if (Context.Channel.Id != UtilService.CHANNEL_BOOSTERS_ID)
             {
                 _ = RespondAsync("Vous ne pouvez pas utilisez cette commande ici", ephemeral: true);
                 return;
             }
+            var account = await Database.ForceGetAccount(Context.User.Id);
+            if (account.BoosterAdvantage is null)
+            {
+                await Utils.CreateBoosterAdvantage(account, (SocketGuildUser)Context.User);
+            }
+            //TODO: Remove no one care of this
+            /*
             if (Utils.CreateroleCooldown.ContainsKey(Context.User.Id))
             {
                 //A cooldown entry exist for this user
@@ -35,12 +47,13 @@ namespace DevCommuBot.Commands
                     _ = RespondAsync("Merci de respecter le cooldown de 5minutes!", ephemeral: true);
                     return;
                 }
-            }
+            }*/
             color = color.Replace("#", "");
             if (int.TryParse(color, System.Globalization.NumberStyles.HexNumber, null, out int finalColor))
             {
                 if (Utils.HasCustomRole(Context.User as SocketGuildUser))
                 {
+                    //User already has a custom role, he wants to manage it
                     var memberRole = Utils.GetCustomRole(Context.User as SocketGuildUser);
                     await memberRole.ModifyAsync(r =>
                     {
@@ -66,9 +79,12 @@ namespace DevCommuBot.Commands
                         }
                     }
                     _ = RespondAsync($"Vous venez de mettre à jour votre rôle {memberRole.Mention}");
+
+                    account.BoosterAdvantage.RoleId = memberRole.Id;
                 }
                 else
                 {
+                    //Creation Role
                     if (Utils.GetGuild().Roles.Any(r => r.Name.ToLower() == name.ToLower()) || (name.ToLower() is "everyone" or "here"))
                     {
                         //AVOID FAKE MODS && everyone
@@ -101,10 +117,11 @@ namespace DevCommuBot.Commands
                             });
                         }
                     }
+                    //Todo: Better message with an embed
                     _ = RespondAsync($"Vous venez de crée le role: {role.Mention}");
+                    account.BoosterAdvantage.RoleId = role.Id;
                 }
                 Utils.CreateroleCooldown[Context.User.Id] = DateTimeOffset.Now.ToUnixTimeSeconds();
-                return;
             }
             else
             {
@@ -112,10 +129,48 @@ namespace DevCommuBot.Commands
             }
         }
 
+        [SlashCommand("voice", "Create/Modify your custom voice channel")]
+        public async Task ManageVoiceCommand([Summary("channelName", "The name of your channel")] string name)
+        {
+            if (Context.Channel.Id != UtilService.CHANNEL_BOOSTERS_ID)
+            {
+                _ = RespondAsync("Vous ne pouvez pas utilisez cette commande ici", ephemeral: true);
+                return;
+            }
+            var account = await Database.ForceGetAccount(Context.User.Id);
+            if (account.BoosterAdvantage is null)
+            {
+                await Utils.CreateBoosterAdvantage(account, (SocketGuildUser)Context.User);
+            }
+            if(account.BoosterAdvantage.VocalId is null)
+            {
+                //Create voice channel!
+                //TODO: Create voice channel
+            }
+            else
+            {
+                //Manage voice channel
+                var channel = Utils.GetGuild().GetVoiceChannel(account.BoosterAdvantage.VocalId.Value);
+                if(channel is null)
+                {
+                    _ = RespondAsync("Il semblerait que vous possédiez déjà un salon vocal, mais impossible de le trouver! Aurait-il été supprimé?", ephemeral: true);
+                    //Debug:
+                    Utils.SendLog("Erreur boosters", $"> Problème rencontré: Impossible de trouver le channel de {Context.User}\n> Useless data:\n|| Channel null, valeur db: {account.BoosterAdvantage.VocalId.Value} ||\n");
+                    return;
+                }
+                var oldName = channel.Name;
+                await channel.ModifyAsync(c =>
+                {
+                    c.Name = name;
+                });
+                _ = RespondAsync($"Mise à jour effectué!\n> Ancien nom: {oldName}\n> Nouveau nom: {name}");
+                //TODO: Should i log this?
+            }
+        }
+
         public override void OnModuleBuilding(InteractionService commandService, ModuleInfo module)
         {
-            //_logger.LogDebug("CreateRoleCommand");
-            Console.WriteLine("CreateRoleCommand");
+            Console.WriteLine("Booster");
             base.OnModuleBuilding(commandService, module);
         }
     }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Camille.RiotGames;
 
 using DevCommuBot.Data.Models.Forums;
+using DevCommuBot.Data.Models.Users;
 
 using Discord;
 using Discord.WebSocket;
@@ -60,6 +61,7 @@ namespace DevCommuBot.Services
 
         private Task OnButtonExecuted(SocketMessageComponent cmp)
         {
+            //Todo: Use database
             //Giveaway check
             if (Giveaways.ContainsKey(cmp.Message.Id))
             {
@@ -76,7 +78,8 @@ namespace DevCommuBot.Services
             }
             else
             {
-                cmp.RespondAsync("Désolé, pas pris en compte", ephemeral: true);
+                //Unable to find this giveaway, maybe end of it
+                cmp.RespondAsync("Impossible de retrouver ce giveaway désolé, est il déjà terminé?", ephemeral: true);
             }
             return Task.CompletedTask;
         }
@@ -98,12 +101,61 @@ namespace DevCommuBot.Services
                 {
                     AuditLogReason = "Le joueur ne boost plus"
                 });
-                /*await customRole.DeleteAsync(options: new()
-                {
-                    AuditLogReason = "Le joueur ne boost plus"
-                });*/
                 SendLog($"{member} a perdu son role personnalisé", $"> Il possédait le role personnalisé:\n{customRole.Mention}['{customRole.Name}']\n**Suppresion du role requise!**", member);
             }
+            //Todo: Rework, should only user BoosterAdvantage and nothing else
+            var user = await database.GetAccount(member.Id);
+            if (user is null)
+                return;
+            if (user.BoosterAdvantage is not null)
+            {
+                if (user.BoosterAdvantage.VocalId is not null)
+                {
+                    var channel = GetGuild().GetVoiceChannel(user.BoosterAdvantage.VocalId.Value);
+                    if (channel is not null)
+                    {
+                        await channel.DeleteAsync();
+                        SendLog("Suppression d'un channel vocal", $"> Le channel vocal {channel.Mention} a été supprimé car le boosteur n'a plus boosté le discord", member);
+                    }
+                }
+                if (user.BoosterAdvantage.RoleId is not null)
+                {
+                    var role = GetGuild().GetRole(user.BoosterAdvantage.RoleId.Value);
+                    if (role is not null)
+                    {
+                        await role.DeleteAsync();
+                        SendLog("Suppression d'un role", $"> Le role {role.Mention} a été supprimé car le boosteur n'a plus boosté le discord", member);
+                    }
+                }
+                user.BoosterAdvantage = null;
+                await database.UpdateAccount(user);
+            }
+        }
+
+        public async Task MemberBoosted(SocketGuildUser member)
+        {
+            var embed = new EmbedBuilder()
+                            .WithAuthor(member)
+                            .WithColor(EmbedColor)
+                            .WithTitle($"{member} vient de booster!")
+                            .WithDescription("> **Merci d'avoir boosté!!!**\nEn boostant vous avez accès à la commande `/createrole` vous permettant de créer votre propre rôle")
+                            .WithCurrentTimestamp()
+                            .Build();
+            await GetBoostersChannel().SendMessageAsync(text: $"Merci d'avoir booster le discord {member.Mention}", embed: embed);
+            SendLog($"{member} vient de booster le discord", $"> Merci à lui!", member);
+            var user = await database.GetAccount(member.Id);
+            if (user is null)
+                return;
+            _ = CreateBoosterAdvantage(user, member);
+        }
+        
+        internal async Task CreateBoosterAdvantage(User user, SocketGuildUser member)
+        {
+            user.BoosterAdvantage = new BoosterAdvantage
+            {
+                Since = member.PremiumSince.Value.DateTime
+            };
+            await database.UpdateAccount(user);
         }
 
         /// <summary>
@@ -217,7 +269,7 @@ namespace DevCommuBot.Services
                 .WithAuthor(author)
                 .WithTitle(title)
                 .WithDescription(description)
-                .WithFooter("2022")
+                .WithFooter("Still in development")
                 .WithCurrentTimestamp()
                 .Build();
             GetLogChannel().SendMessageAsync(embed: embed);

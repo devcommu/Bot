@@ -37,6 +37,11 @@ namespace DevCommuBot.Data
                 .HasForeignKey(uw => uw.UserId);
             modelBuilder.Entity<Forum>()
                 .HasMany(f => f.Entries);
+            modelBuilder.Entity<User>()
+                .Property(u => u.BoosterAdvantage)
+                .HasConversion(
+                    v => JsonConvert.SerializeObject(v),
+                    v => JsonConvert.DeserializeObject<BoosterAdvantage?>(v));
         }
     }
 }

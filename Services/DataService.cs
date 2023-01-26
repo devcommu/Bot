@@ -51,7 +51,23 @@ namespace DevCommuBot.Services
             .Include(u => u.Warnings)
             .ThenInclude(uw => uw.Warning)
             .FirstOrDefaultAsync(u => u.UserId == userId);
-
+        public async Task<User> ForceGetAccount(ulong userId)
+        {
+            if (await _dataContext.Users.FirstOrDefaultAsync(u => u.UserId == userId) is not null)
+                return await GetAccount(userId)!;
+            await CreateAccount(userId);
+            return await GetAccount(userId)!;
+        }
+        /// <summary>
+        /// Update account
+        /// </summary>
+        /// <param name="user">User to be updated</param>
+        /// <returns></returns>
+        public async Task UpdateAccount(User user)
+        {
+            _dataContext.Users.Update(user);
+            await _dataContext.SaveChangesAsync();
+        }
         #endregion USER
 
         #region WARN

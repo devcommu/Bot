@@ -108,14 +108,7 @@ namespace DevCommuBot.Services
                     if (added.Any(r => r.Id == UtilService.ROLE_BOOSTERS_ID))
                     {
                         //User has boosted!
-                        var embed = new EmbedBuilder()
-                            .WithAuthor(member)
-                            .WithColor(_util.EmbedColor)
-                            .WithTitle($"{member} vient de booster!")
-                            .WithDescription("> **Merci d'avoir boosté!!!**\nEn boostant vous avez accès à la commande `/createrole` vous permettant de créer votre propre rôle")
-                            .WithCurrentTimestamp()
-                            .Build();
-                        await _util.GetBoostersChannel().SendMessageAsync(text: $"Merci d'avoir booster le discord {member.Mention}", embed: embed);
+                        await _util.MemberBoosted(member);
                     }
                 }
             }
