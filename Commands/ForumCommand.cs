@@ -14,7 +14,7 @@ namespace DevCommuBot.Commands
         public ILogger<ApexStatsCommand> Logger { get; set; }
         public UtilService Utils { get; set; }
 
-        [SlashCommand("info", "Obtenir les informations d'un forum")]
+        /*[SlashCommand("info", "oui")]
         public async Task GetForumInformation()
         {
             if (!Utils.IsAForum(Context.Channel))
@@ -22,16 +22,23 @@ namespace DevCommuBot.Commands
                 await RespondAsync("Cette commande doit être utilisé dans un forum", ephemeral: true);
                 return;
             }
-        }
-
-        [SlashCommand("info post", "Obtenir les informations d'un post")]
-        public async Task GetPostInformation()
+        }*/
+        [Group("info", "Obtenir les informations d'un forum")]
+        internal class ForumInfoCommand : InteractionModuleBase<SocketInteractionContext>
         {
-            if (!Utils.IsAForum(Context.Channel))
+            public ILogger<ApexStatsCommand> Logger { get; set; }
+            public UtilService Utils { get; set; }
+
+            [SlashCommand("post", "Obtenir les informations d'un post")]
+            public async Task GetPostInformation()
             {
-                await RespondAsync("Cette commande doit être utilisé dans un forum", ephemeral: true);
-                return;
+                if (!Utils.IsAForum(Context.Channel))
+                {
+                    await RespondAsync("Cette commande doit être utilisé dans un forum", ephemeral: true);
+                    return;
+                }
             }
         }
+        
     }
 }

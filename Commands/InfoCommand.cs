@@ -14,7 +14,7 @@ namespace DevCommuBot.Commands
         [SlashCommand("info", "Get information about the discord and the bot")]
         public async Task GetInfo()
         {
-            //ToDo: Use  https://api.github.com/repos/devcommu/Bot/contributors
+            //ToDo: Use https://api.github.com/repos/devcommu/Bot/contributors
         }
     }
 }

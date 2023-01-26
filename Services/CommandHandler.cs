@@ -48,8 +48,10 @@ namespace DevCommuBot.Services
                 {
                     _logger.LogError("Une Errreur est survenue");
                     _logger.LogError(x.Exception.Message);
+                    _logger.LogError(x.Exception.Source);
+                    _logger.LogError(x.Exception.InnerException?.Message);
+                    _logger.LogError(x.Exception.StackTrace);
                 }
-                _logger.LogDebug($"Status: {x.Status} ET: {x.Result is null}");
                 if (x.Exception != null)
                     _logger.LogError($"Exception: {x.Exception.InnerException.Message}");
 
