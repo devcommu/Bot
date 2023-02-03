@@ -128,7 +128,7 @@ namespace DevCommuBot.Commands
                     _ = RespondAsync($"Création effectué!", embed: embed);
                     account.BoosterAdvantage.RoleId = role.Id;
                 }
-                Utils.CreateroleCooldown[Context.User.Id] = DateTimeOffset.Now.ToUnixTimeSeconds();
+                //Utils.CreateroleCooldown[Context.User.Id] = DateTimeOffset.Now.ToUnixTimeSeconds();
             }
             else
             {

@@ -44,6 +44,7 @@ namespace DevCommuBot.Services
 
         public readonly Color EmbedColor = new(19, 169, 185);
 
+        //Todo: no need to have cooldown
         public readonly Dictionary<ulong, long> CreateroleCooldown = new();
         public Dictionary<ulong, List<ulong>> Giveaways = new(); // <message id, List<user>>
         public readonly RiotGamesApi Riot;
@@ -63,7 +64,7 @@ namespace DevCommuBot.Services
         {
             //Todo: Use database
             //Giveaway check
-            if (Giveaways.ContainsKey(cmp.Message.Id))
+            if (database.GetGiveaway(cmp.Message.Id) is not null)
             {
                 //Giveaway
                 if (Giveaways[cmp.Message.Id].Contains(cmp.User.Id))
