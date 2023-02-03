@@ -33,8 +33,7 @@ namespace DevCommuBot.Services
             _client.UserJoined += OnUserJoin;
             _client.LeftGuild += OnUserLeft;
             _client.Ready += OnClientReady;
-            /*_client.Ready += OnReady;
-            _client.InteractionCreated += OnInteraction;*/
+            /*_client.Ready += OnReady;*/
             _client.GuildMemberUpdated += OnGuildUpdate;
             _client.MessageReceived += OnMessageReceive;
         }
@@ -115,15 +114,6 @@ namespace DevCommuBot.Services
             return;
         }
 
-        private Task OnInteraction(SocketInteraction arg)
-        {
-            if (arg is SocketMessageComponent component)
-            {
-                //TODO: Remove if not found any use
-                //Button Integrations?
-            }
-            return Task.CompletedTask;
-        }
 
         private Task OnUserLeft(SocketGuild member)
         {

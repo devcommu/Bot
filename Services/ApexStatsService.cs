@@ -106,7 +106,6 @@ namespace DevCommuBot.Services
 
         public int Level { get; set; }
 
-        // TODO: Implement....
         [JsonProperty("rank")]
         public GlobalRankStats Rank { get; set; }
 

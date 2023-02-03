@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Camille.RiotGames.LolStatusV3;
 
 using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,8 +24,6 @@ namespace DevCommuBot.Services
         private readonly ILogger _logger;
         private readonly UtilService _util;
         private readonly DataService _database;
-        //TODO: Remove this old implementation:
-        private Dictionary<ulong, int> StarboardMessages = new(); // ulong => message id , int => number of star
         public const string EMOTE_STAR = "⭐";
         public StarboardService(IServiceProvider services)
         {
@@ -56,12 +55,16 @@ namespace DevCommuBot.Services
                         if (reactions.ReactionCount > UtilService.MIN_REACTION_STARBOARD)
                         {
                             //Message has already been submited to Starboard
-                            //TODO: Update count of star in messages
                             if (await _database.HasAStarboardEntry(message.Id))
                             {
+                                await UpdateScore(message.Id, reactions.ReactionCount);
+                            }
+                            else
+                            {
+                                var msg = await AnnounceNewEntry(message.Value, message.Value.Author);
+                                await _database.CreateStarboardEntry(message.Value.Author.Id, message.Id, channel.Id, msg.Id, reactions.ReactionCount);
                             }
                                 return;
-                            //TODO:
                         }
                     }
                 }
@@ -75,20 +78,34 @@ namespace DevCommuBot.Services
                 _ = new ArgumentException("Starboard does not exists");
                 return;
             }
-            var originmessage = await _util.GetStarboardChannel().GetMessageAsync(starboard.MessageId);
-
+            IUserMessage originmessage = await _util.GetStarboardChannel().GetMessageAsync(starboard.MessageId) as IUserMessage;
+            await originmessage.ModifyAsync(m => {
+                if (m.Embed.IsSpecified)
+                {
+                    var oldEmbed = m.Embed.Value;
+                    var embed = new EmbedBuilder()
+                        .WithAuthor(oldEmbed.ToEmbedBuilder().Author)
+                        .WithColor(_util.EmbedColor)
+                        .AddField("Message:", oldEmbed.Fields[0])
+                        .AddField("Message link:", oldEmbed.Fields[1])
+                        .AddField("Stars", $"{score} {EMOTE_STAR}", true)
+                        .Build();
+                    m.Embed = embed;
+                }
+            });
         }
 
-        private async Task AnnounceNewEntry(IUserMessage message, IUser author)
+        private async Task<RestMessage> AnnounceNewEntry(IUserMessage message, IUser author)
         {
             var embed = new EmbedBuilder()
                 .WithAuthor(author)
                 .WithColor(_util.EmbedColor)
                 .AddField("Message:", $"`{message.Content}`")
-                .AddField("Message link: ", $"{message.GetJumpUrl()}")
+                .AddField("Message link:", $"{message.GetJumpUrl()}")
                 .AddField("Stars", $"5 {EMOTE_STAR}", true)
                 .Build();
             var msg = await _util.GetStarboardChannel().SendMessageAsync(embed: embed);
+            return msg;
         }
     }
 }

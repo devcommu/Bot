@@ -117,8 +117,15 @@ namespace DevCommuBot.Commands
                             });
                         }
                     }
-                    //Todo: Better message with an embed
-                    _ = RespondAsync($"Vous venez de crée le role: {role.Mention}");
+                    var embed = new EmbedBuilder()
+                        .WithAuthor(Context.User)
+                        .WithColor(Utils.EmbedColor)
+                        .WithTitle("Création de role")
+                        .WithDescription("Vous venez de crée le role: " + role.Mention)
+                        .WithCurrentTimestamp()
+                        .WithFooter("Merci du boost!")
+                        .Build();
+                    _ = RespondAsync($"Création effectué!", embed: embed);
                     account.BoosterAdvantage.RoleId = role.Id;
                 }
                 Utils.CreateroleCooldown[Context.User.Id] = DateTimeOffset.Now.ToUnixTimeSeconds();
@@ -164,7 +171,7 @@ namespace DevCommuBot.Commands
                     c.Name = name;
                 });
                 _ = RespondAsync($"Mise à jour effectué!\n> Ancien nom: {oldName}\n> Nouveau nom: {name}");
-                //TODO: Should i log this?
+                Utils.SendLog("Boosters", $"> {Context.User} vient de modifier son salon vocal de {oldName} à {name}");
             }
         }
 

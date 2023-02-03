@@ -14,7 +14,7 @@ namespace DevCommuBot.Commands
         public ILogger<ApexStatsCommand> Logger { get; set; }
         public UtilService Utils { get; set; }
 
-        /*[SlashCommand("info", "oui")]
+        [SlashCommand("information", "oui")]
         public async Task GetForumInformation()
         {
             if (!Utils.IsAForum(Context.Channel))
@@ -22,7 +22,7 @@ namespace DevCommuBot.Commands
                 await RespondAsync("Cette commande doit être utilisé dans un forum", ephemeral: true);
                 return;
             }
-        }*/
+        }
         [Group("info", "Obtenir les informations d'un forum")]
         internal class ForumInfoCommand : InteractionModuleBase<SocketInteractionContext>
         {
