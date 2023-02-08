@@ -185,7 +185,7 @@ namespace DevCommuBot.Services
 
         #region GIVEAWAY
 
-        public async Task CreateGiveaway(ulong authorId, ulong messageId, string messageDescription, string wonObject, int amountOfWinners, DateTime startAt, DateTime EndAt, GiveawayState state, GiveawayCondition condition = GiveawayCondition.NO_CONDITION)
+        public async Task CreateGiveaway(ulong authorId, ulong messageId, ulong channelId, string messageDescription, string wonObject, int amountOfWinners, DateTime startAt, DateTime EndAt, GiveawayState state, GiveawayCondition condition = GiveawayCondition.NO_CONDITION, string PromoteLink = "")
         {
             await _dataContext.Giveaways.AddAsync(new Giveaway
             {
@@ -217,7 +217,7 @@ namespace DevCommuBot.Services
             return _dataContext.Giveaways.FirstOrDefaultAsync(g => g.Id == giveawayId);
         }
 
-        public async Task UpdateGiveaway(ulong messageId, string messageDescription = "", string winObject = "", int winners = 0, DateTime startAt = default, DateTime EndAt = default, GiveawayCondition condition = GiveawayCondition.NO_CONDITION, GiveawayState state = default)
+        public async Task UpdateGiveaway(ulong messageId, string messageDescription = "", string winObject = "", int winners = 0, DateTime startAt = default, DateTime EndAt = default, GiveawayCondition condition = GiveawayCondition.NO_CONDITION, GiveawayState state = default, string promoteLink = "")
         {
             var giveaway = await GetGiveaway(messageId);
             if (giveaway == null)
@@ -227,6 +227,8 @@ namespace DevCommuBot.Services
             }
             if (messageDescription != "")
                 giveaway.MessageDescription = messageDescription;
+            if (promoteLink != "")
+                giveaway.PromoteLink = promoteLink;
             if (winObject != "")
                 giveaway.WonObject = winObject;
             if (winners != giveaway.AmountOfWinners)
@@ -242,7 +244,11 @@ namespace DevCommuBot.Services
             _dataContext.Giveaways.Update(giveaway);
             await _dataContext.SaveChangesAsync();
         }
-
+        public async Task UpdateGiveaway(Giveaway giveaway)
+        {
+            _dataContext.Giveaways.Update(giveaway);
+            await _dataContext.SaveChangesAsync();
+        }
         /// <summary>
         /// Get active giveaways
         /// </summary>

@@ -170,8 +170,8 @@ namespace DevCommuBot.Commands
                 {
                     c.Name = name;
                 });
-                _ = RespondAsync($"Mise à jour effectué!\n> Ancien nom: {oldName}\n> Nouveau nom: {name}");
-                Utils.SendLog("Boosters", $"> {Context.User} vient de modifier son salon vocal de {oldName} à {name}");
+                _ = RespondAsync($"Mise à jour effectué!\n> Ancien nom: {oldName}\n> Nouveau nom: {name}\n> ||Tout abus sera sanctionné! ||");
+                Utils.SendLog("Boosters [VC]", $"> {Context.User} vient de modifier son salon vocal de {oldName} à {name}");
             }
         }
 

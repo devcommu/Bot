@@ -46,7 +46,6 @@ namespace DevCommuBot.Services
 
         //Todo: no need to have cooldown
         public readonly Dictionary<ulong, long> CreateroleCooldown = new();
-        public Dictionary<ulong, List<ulong>> Giveaways = new(); // <message id, List<user>>
         public readonly RiotGamesApi Riot;
         private readonly IConfigurationRoot _config;
 
@@ -57,34 +56,8 @@ namespace DevCommuBot.Services
             _config = services.GetRequiredService<IConfigurationRoot>();
             database = services.GetRequiredService<DataService>();
             Riot = RiotGamesApi.NewInstance(_config["riotToken"]);
-            _client.ButtonExecuted += OnButtonExecuted;
         }
-
-        private Task OnButtonExecuted(SocketMessageComponent cmp)
-        {
-            //Todo: Use database
-            //Giveaway check
-            if (database.GetGiveaway(cmp.Message.Id) is not null)
-            {
-                //Giveaway
-                if (Giveaways[cmp.Message.Id].Contains(cmp.User.Id))
-                {
-                    cmp.RespondAsync("Vous êtes déjà inscris!", ephemeral: true);
-                }
-                else
-                {
-                    Giveaways[cmp.Message.Id].Add(cmp.User.Id);
-                    cmp.RespondAsync("Enregistré!", ephemeral: true);
-                }
-            }
-            else
-            {
-                //Unable to find this giveaway, maybe end of it
-                cmp.RespondAsync("Impossible de retrouver ce giveaway désolé, est il déjà terminé?", ephemeral: true);
-            }
-            return Task.CompletedTask;
-        }
-
+        
         public async Task MemberUnboosted(SocketGuildUser member)
         {
             var roles = "";
@@ -209,7 +182,11 @@ namespace DevCommuBot.Services
             }
             return forumDb;
         }
-
+        /// <summary>
+        /// Is the channel a forum channel (avoid custom channels)
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <returns></returns>
         public bool IsAForum(ISocketMessageChannel channel)
         {
             if (channel is SocketThreadChannel thread)
@@ -262,7 +239,12 @@ namespace DevCommuBot.Services
 
         public SocketTextChannel GetStarboardChannel()
             => _client.GetChannel(CHANNEL_STARBOARD_ID) as SocketTextChannel;
-
+        /// <summary>
+        /// Send log to the discord channel
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="description"></param>
+        /// <param name="author"></param>
         public void SendLog(string title, string description, SocketGuildUser author = null)
         {
             var embed = new EmbedBuilder()
@@ -275,7 +257,19 @@ namespace DevCommuBot.Services
                 .Build();
             GetLogChannel().SendMessageAsync(embed: embed);
         }
-
+        public void SendLog(EmbedBuilder embed)
+        {
+            embed = embed.WithCurrentTimestamp()
+                .WithColor(EmbedColor);
+            if (embed.Footer.Text == "")
+                embed = embed.WithFooter("DevCommunity");
+            GetLogChannel().SendMessageAsync(embed: embed.Build());
+        }
+        /// <summary>
+        /// DEPRECATED, use <see cref="DataServices.GetAccount(SocketGuildUser)"/> instead
+        /// </summary>
+        /// <param name="member"></param>
+        /// <returns></returns>
         public bool HasCustomRole(SocketGuildUser member)
             => member.Roles.Any(role => role.Position > GetBoostersRole().Position) && member.GuildPermissions.Administrator is not true;
 

@@ -21,9 +21,14 @@ namespace DevCommuBot.Data.Models.Giveaways
         /// Message that contains the giveaway
         /// </summary>
         public ulong MessageId { get; set; }
+        /// <summary>
+        /// Channel where the giveaway was launched!
+        /// </summary>
+        public ulong ChannelId { get; set; }
 
         public string MessageDescription { get; set; }
         public string MessageCondition { get; set; } = "";
+        public string PromoteLink { get; set; } = "";
 
         /// <summary>
         /// Condition to enter in this giveaway
