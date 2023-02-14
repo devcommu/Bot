@@ -27,7 +27,7 @@ namespace DevCommuBot.Data.Models.Users
         public List<StarboardEntry> StarboardEntries = new();
 
         public bool DisplayPartnerAds { get; set; } = true;
-
+        public bool AllowGiveaway { get; set; } = true;
         /// <summary>
         /// The object that represents advantage of boosting
         /// </summary>

@@ -41,10 +41,18 @@ namespace DevCommuBot.Services
         {
             var msg = msgComp.Message;
             var giveaway = await Database.GetGiveaway(msg.Id);
+            var user = msgComp.User;
+            
             if (giveaway is not null)
             {
+                var account = await Database.ForceGetAccount(user.Id);
+                if(account.AllowGiveaway is false)
+                {
+                    _ = msgComp.RespondAsync("Vous êtes interdit de giveaway!", ephemeral: true);
+                    return;
+                }
                 //First check if giveaway is still running
-                if(giveaway.State == GiveawayState.NOT_STARTED)
+                if (giveaway.State == GiveawayState.NOT_STARTED)
                 {
                     _ = msgComp.RespondAsync("Ce giveaway n'a toujours pas commencé!", ephemeral: true);
                     return;
@@ -55,13 +63,16 @@ namespace DevCommuBot.Services
                     return;
                 }
                 //Now check if user already in it
-                if (giveaway.Participants.Contains(msg.Author.Id))
+                if (giveaway.Participants.Contains(user.Id))
                 {
-                    _ = msgComp.RespondAsync("Vous êtes déjà inscrit au giveaway!\n> Il n'est maleureusement pas possible de se désinscrire", ephemeral: true);
+                    //Todo: Remove from giveaway
+                    _ = msgComp.RespondAsync("Vous êtes déjà inscrit au giveaway!\n> Il n'est maleureusement pas possible de se désinscrire pour le moment", ephemeral: true);
                     return;
                 }
-                giveaway.Participants.Add(msg.Author.Id);
-                _ = msgComp.RespondAsync("Votre inscreiption a bien été pris en compte! Revenez le : " + giveaway.EndAt.ToString(Culture), ephemeral: true);
+                giveaway.Participants.Add(user.Id);
+                await Database.UpdateGiveaway(giveaway);
+                _ = msgComp.RespondAsync("Votre inscription a bien été prise en compte! Revenez le : " + giveaway.EndAt.ToString(Culture), ephemeral: true);
+                Logger.LogDebug($"Inscription au giveaway N°{giveaway.Id}, {user.Username}({user.Id}) s'est inscrit.");
             }
         }
 

@@ -137,7 +137,7 @@ namespace DevCommuBot.Commands
         }
 
         [SlashCommand("voice", "Create/Modify your custom voice channel")]
-        public async Task ManageVoiceCommand([Summary("channelName", "The name of your channel")] string name)
+        public async Task ManageVoiceCommand([Summary("channelName", "The name of your channel")] string name, [Summary("userLimit", "Capacity of VC")] int userLimit = -1)
         {
             if (Context.Channel.Id != UtilService.CHANNEL_BOOSTERS_ID)
             {
@@ -153,6 +153,15 @@ namespace DevCommuBot.Commands
             {
                 //Create voice channel!
                 //TODO: Create voice channel
+                var channel = await Utils.GetGuild().CreateVoiceChannelAsync(name, ch =>
+                {
+                    if (userLimit != -1)
+                        ch.UserLimit = userLimit;
+                });
+                _ = RespondAsync("Votre salon a été crée!" + channel.Mention);
+                account.BoosterAdvantage.VocalId= channel.Id;
+                await Database.UpdateAccount(account);
+                return;
             }
             else
             {
@@ -169,6 +178,8 @@ namespace DevCommuBot.Commands
                 await channel.ModifyAsync(c =>
                 {
                     c.Name = name;
+                    if (userLimit != -1)
+                        c.UserLimit = userLimit;
                 });
                 _ = RespondAsync($"Mise à jour effectué!\n> Ancien nom: {oldName}\n> Nouveau nom: {name}\n> ||Tout abus sera sanctionné! ||");
                 Utils.SendLog("Boosters [VC]", $"> {Context.User} vient de modifier son salon vocal de {oldName} à {name}");

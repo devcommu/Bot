@@ -32,6 +32,7 @@ namespace DevCommuBot.Services
         public const ulong CHANNEL_ROLES_ID = 1056941109877669898;
         public const ulong CHANNEL_VOSPROJETS_ID = 1027262989428068364;
         public const ulong CHANNEL_DEBATS_ID = 1028042928121200700;
+        public const ulong CHANNEL_GIVEAWAYS_ID = 1075165771539431506;
 
         public const ulong ROLE_PROJECTS_ID = 874785049516605491;
         public const ulong ROLE_GAMING_ID = 875757898087678034;
@@ -39,6 +40,7 @@ namespace DevCommuBot.Services
         public const ulong ROLE_DEVCHATS_ID = 1005237731309404170;
         public const ulong ROLE_FREEGAMES_ID = 1056927799090348113;// will get pinged when free games are available
         public const ulong ROLE_DISCORDGAMES_ID = 1057061877563277312; //Play on Okureta
+        public const ulong ROLE_GIVEAWAYS_ID = 1056929486916038706; //Play on Okureta
 
         public const int MIN_REACTION_STARBOARD = 5;
 

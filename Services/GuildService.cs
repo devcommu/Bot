@@ -59,7 +59,8 @@ namespace DevCommuBot.Services
                     .AddOption("Gaming", "gaming", "Obtenez le role gaming et devenez cool (imo)")
                     .AddOption("Developer Chats", "devchats", "Accédez à un salon sous estimé de la communauté")
                     .AddOption("Free Games", "free-games", "Accédez à un salon de jeux gratuits")
-                    .AddOption("Discord Games", "discord-games", "Accédez à un salon de jeux discord(Okureta etc..)");
+                    .AddOption("Discord Games", "discord-games", "Accédez à un salon de jeux discord(Okureta etc..)")
+                    .AddOption("Giveaways", "giveaways", "Accédez à un slaon pour participer à des giveaways.");
 
                 var builder = new ComponentBuilder()
                     .WithSelectMenu(menuBuilder);

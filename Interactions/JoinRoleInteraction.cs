@@ -42,6 +42,9 @@ namespace DevCommuBot.Interactions
                 case "discord-games":
                     role = Utils.GetGuild().GetRole(UtilService.ROLE_DISCORDGAMES_ID);
                     break;
+                case "giveaways":
+                    role = Utils.GetGuild().GetRole(UtilService.ROLE_GIVEAWAYS_ID);
+                    break;
 
                 default:
                     RespondAsync("Oups! Je n'ai pas trouver le rôle que tu souhaites obtenir! ERR_INTERACTIONS:ROLE_NOT_FOUND", ephemeral: true);
