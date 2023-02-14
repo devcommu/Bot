@@ -48,6 +48,7 @@ namespace DevCommuBot.Services
                 var forumDb = await _util.ForceGetForum(forum);
             }
         }
+
         private async Task OnThreadMessageReceived(SocketMessage msg)
         {
             if (!_util.IsAForum(msg.Channel))
@@ -102,6 +103,7 @@ namespace DevCommuBot.Services
         }
 
         public static ForumTag? GetClosedTag(SocketForumChannel forum) => GetTag(forum, "Closed");
+
         private static ForumTag? GetTag(SocketForumChannel forum, string tagName)
         {
             return forum.Tags.FirstOrDefault(ft => ft.Name == tagName);

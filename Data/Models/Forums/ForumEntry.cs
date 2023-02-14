@@ -14,10 +14,12 @@ namespace DevCommuBot.Data.Models.Forums
         public int Id { get; set; }
 
         public string Name { get; set; }
+
         /// <summary>
         /// Post's author
         /// </summary>
         public User Author { get; set; }
+
         /// <summary>
         /// Is the post locked?
         /// </summary>
@@ -43,10 +45,12 @@ namespace DevCommuBot.Data.Models.Forums
         NO_EMOJIS,
         NO_FULLCAPS,
         NO_COMMENTS,
+
         /// <summary>
         /// Discord invite link will be allowed here
         /// </summary>
         ALLOW_ADS,
+
         /// <summary>
         /// No one should be able to talk after that
         /// </summary>

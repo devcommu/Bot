@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 using DevCommuBot.Services;
@@ -20,7 +18,8 @@ namespace DevCommuBot.Commands
     {
         public UtilService Utils { get; set; }
         public ILogger<InfoCommand> Logger { get; set; }
-        [SlashCommand("informations", "Get information about the discord and the bot",runMode: RunMode.Async)]
+
+        [SlashCommand("informations", "Get information about the discord and the bot", runMode: RunMode.Async)]
         public async Task GetInfo()
         {
             Logger.LogDebug("Debut Requete");
@@ -34,12 +33,12 @@ namespace DevCommuBot.Commands
             Logger.LogDebug($"Resultat requete: {rslt}");
             var contributors = JsonConvert.DeserializeObject<ICollection<GithubContributor>>(rslt);
             string contString = "";
-            foreach(var contributor in contributors)
+            foreach (var contributor in contributors)
             {
                 contString += $"[{contributor.login}]({contributor.html_url}) ({contributor.contributions} contributions)\n";
             }
             Logger.LogDebug($"Message à afficher: {contString}");
-            if(contString == "")
+            if (contString == "")
                 contString = "No contributors yet";
             var embedBot = new EmbedBuilder()
                 .WithTitle("Bot's Information")
@@ -66,14 +65,15 @@ namespace DevCommuBot.Commands
                 x.Embeds = new Embed[] { embedBot, embedDiscord };
             });
             //ToDo: Use https://api.github.com/repos/devcommu/Bot/contributors
-
         }
+
         public override void OnModuleBuilding(InteractionService commandService, ModuleInfo module)
         {
             Console.WriteLine("Informations");
             base.OnModuleBuilding(commandService, module);
         }
     }
+
     [JsonObject]
     internal class GithubContributor
     {

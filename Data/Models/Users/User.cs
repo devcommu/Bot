@@ -28,13 +28,15 @@ namespace DevCommuBot.Data.Models.Users
 
         public bool DisplayPartnerAds { get; set; } = true;
         public bool AllowGiveaway { get; set; } = true;
+
         /// <summary>
         /// The object that represents advantage of boosting
         /// </summary>
         public BoosterAdvantage? BoosterAdvantage { get; set; } = null;
     }
+
     [JsonObject]
-    internal class BoosterAdvantage 
+    internal class BoosterAdvantage
     {
         public ulong? RoleId { get; set; }
         public ulong? VocalId { get; set; }

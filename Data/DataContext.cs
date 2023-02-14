@@ -3,8 +3,6 @@ using DevCommuBot.Data.Models.Giveaways;
 using DevCommuBot.Data.Models.Users;
 using DevCommuBot.Data.Models.Warnings;
 
-using Discord;
-
 using Microsoft.EntityFrameworkCore;
 
 using Newtonsoft.Json;

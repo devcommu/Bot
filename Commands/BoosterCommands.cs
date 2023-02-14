@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -10,7 +8,6 @@ using DevCommuBot.Services;
 
 using Discord;
 using Discord.Interactions;
-using Discord.Rest;
 using Discord.WebSocket;
 
 using Microsoft.Extensions.Logging;
@@ -149,7 +146,7 @@ namespace DevCommuBot.Commands
             {
                 await Utils.CreateBoosterAdvantage(account, (SocketGuildUser)Context.User);
             }
-            if(account.BoosterAdvantage.VocalId is null)
+            if (account.BoosterAdvantage.VocalId is null)
             {
                 //Create voice channel!
                 //TODO: Create voice channel
@@ -159,7 +156,7 @@ namespace DevCommuBot.Commands
                         ch.UserLimit = userLimit;
                 });
                 _ = RespondAsync("Votre salon a été crée!" + channel.Mention);
-                account.BoosterAdvantage.VocalId= channel.Id;
+                account.BoosterAdvantage.VocalId = channel.Id;
                 await Database.UpdateAccount(account);
                 return;
             }
@@ -167,7 +164,7 @@ namespace DevCommuBot.Commands
             {
                 //Manage voice channel
                 var channel = Utils.GetGuild().GetVoiceChannel(account.BoosterAdvantage.VocalId.Value);
-                if(channel is null)
+                if (channel is null)
                 {
                     _ = RespondAsync("Il semblerait que vous possédiez déjà un salon vocal, mais impossible de le trouver! Aurait-il été supprimé?", ephemeral: true);
                     //Debug:

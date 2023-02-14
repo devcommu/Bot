@@ -51,6 +51,7 @@ namespace DevCommuBot.Services
             .Include(u => u.Warnings)
             .ThenInclude(uw => uw.Warning)
             .FirstOrDefaultAsync(u => u.UserId == userId);
+
         public async Task<User> ForceGetAccount(ulong userId)
         {
             if (await _dataContext.Users.FirstOrDefaultAsync(u => u.UserId == userId) is not null)
@@ -58,6 +59,7 @@ namespace DevCommuBot.Services
             await CreateAccount(userId);
             return await GetAccount(userId)!;
         }
+
         /// <summary>
         /// Update account
         /// </summary>
@@ -68,6 +70,7 @@ namespace DevCommuBot.Services
             _dataContext.Users.Update(user);
             await _dataContext.SaveChangesAsync();
         }
+
         #endregion USER
 
         #region WARN
@@ -95,8 +98,10 @@ namespace DevCommuBot.Services
         #endregion WARN
 
         #region STARBOARD
+
         public Task<bool> HasAStarboardEntry(ulong messageId)
             => _dataContext.Starboards.AnyAsync(m => m.MessageId == messageId);
+
         //TODO: Better code!
         public Task<StarboardEntry?> GetStarboardEntry(ulong messageId, EntryType entryType)
         {
@@ -121,11 +126,13 @@ namespace DevCommuBot.Services
             });
             await _dataContext.SaveChangesAsync();
         }
+
         public async Task UpdateScoreStarboard(StarboardEntry entry, int score)
         {
             entry.Score = score;
             await _dataContext.SaveChangesAsync();
         }
+
         public async Task UpdateScoreStarboard(ulong messageId = default, ulong starboardMessageId = default, int score = default)
         {
             var entry = await _dataContext.Starboards.FirstOrDefaultAsync(st => st.MessageId == messageId || st.StarboardMessageId == starboardMessageId);
@@ -135,11 +142,12 @@ namespace DevCommuBot.Services
                 await _dataContext.SaveChangesAsync();
             }
         }
-            #endregion Starboard
 
-            #region FORUM
+        #endregion STARBOARD
 
-            public async Task CreateForum(ulong forumId)
+        #region FORUM
+
+        public async Task CreateForum(ulong forumId)
         {
             await _dataContext.Forums.AddAsync(new Forum
             {
@@ -244,11 +252,13 @@ namespace DevCommuBot.Services
             _dataContext.Giveaways.Update(giveaway);
             await _dataContext.SaveChangesAsync();
         }
+
         public async Task UpdateGiveaway(Giveaway giveaway)
         {
             _dataContext.Giveaways.Update(giveaway);
             await _dataContext.SaveChangesAsync();
         }
+
         /// <summary>
         /// Get active giveaways
         /// </summary>

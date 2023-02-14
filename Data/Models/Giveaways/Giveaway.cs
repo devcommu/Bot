@@ -21,6 +21,7 @@ namespace DevCommuBot.Data.Models.Giveaways
         /// Message that contains the giveaway
         /// </summary>
         public ulong MessageId { get; set; }
+
         /// <summary>
         /// Channel where the giveaway was launched!
         /// </summary>

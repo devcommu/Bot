@@ -23,6 +23,7 @@ namespace DevCommuBot.Commands
                 return;
             }
         }
+
         [Group("info", "Obtenir les informations d'un forum")]
         internal class ForumInfoCommand : InteractionModuleBase<SocketInteractionContext>
         {
@@ -39,6 +40,5 @@ namespace DevCommuBot.Commands
                 }
             }
         }
-        
     }
 }

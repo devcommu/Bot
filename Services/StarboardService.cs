@@ -1,20 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Channels;
 using System.Threading.Tasks;
-
-using Camille.RiotGames.LolStatusV3;
 
 using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-
-using static System.Collections.Specialized.BitVector32;
 
 namespace DevCommuBot.Services
 {
@@ -25,6 +18,7 @@ namespace DevCommuBot.Services
         private readonly UtilService _util;
         private readonly DataService _database;
         public const string EMOTE_STAR = "⭐";
+
         public StarboardService(IServiceProvider services)
         {
             _client = services.GetRequiredService<DiscordSocketClient>();
@@ -64,22 +58,24 @@ namespace DevCommuBot.Services
                                 var msg = await AnnounceNewEntry(message.Value, message.Value.Author);
                                 await _database.CreateStarboardEntry(message.Value.Author.Id, message.Id, channel.Id, msg.Id, reactions.ReactionCount);
                             }
-                                return;
+                            return;
                         }
                     }
                 }
             }
         }
+
         private async Task UpdateScore(ulong messageId, int score)
         {
             var starboard = await _database.GetStarboardEntry(messageId, EntryType.OriginalMessage);
-            if(starboard is null)
+            if (starboard is null)
             {
                 _ = new ArgumentException("Starboard does not exists");
                 return;
             }
             IUserMessage originmessage = await _util.GetStarboardChannel().GetMessageAsync(starboard.MessageId) as IUserMessage;
-            await originmessage.ModifyAsync(m => {
+            await originmessage.ModifyAsync(m =>
+            {
                 if (m.Embed.IsSpecified)
                 {
                     var oldEmbed = m.Embed.Value;

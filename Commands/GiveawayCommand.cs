@@ -22,21 +22,22 @@ namespace DevCommuBot.Commands
         private Timer? _timer;
         private ISocketMessageChannel _channel;
         private ulong _messageId;
+
         [SlashCommand("giveaway", "commence un giveaway", runMode: RunMode.Async), RequireUserPermission(GuildPermission.Administrator)]
-        public async Task TheGiveawayCommand([Summary("message", "Message qui sera annoncé")]string msg, [Summary("lot", "lot à gagner")] string wonObject, [Summary("gagnants", "Nombre de gagnants")] int winnerCount, [Summary("fin", "date fin du giveaway au format dd/mm/yyyy hh:ii")] string dateString, [Summary("debut", "date du début au format dd/mm/yyyy hh:ii")]string startDateString = "", string promotelink = "")
+        public async Task TheGiveawayCommand([Summary("message", "Message qui sera annoncé")] string msg, [Summary("lot", "lot à gagner")] string wonObject, [Summary("gagnants", "Nombre de gagnants")] int winnerCount, [Summary("fin", "date fin du giveaway au format dd/mm/yyyy hh:ii")] string dateString, [Summary("debut", "date du début au format dd/mm/yyyy hh:ii")] string startDateString = "", string promotelink = "")
         {
             Logger.LogDebug("Recu!");
             if ((Context.User as SocketGuildUser).GuildPermissions.Administrator)
             {
                 var culture = CultureInfo.CreateSpecificCulture("fr-Fr");
-                if (!DateTime.TryParse(dateString, culture, DateTimeStyles.None, out var endTime)) 
+                if (!DateTime.TryParse(dateString, culture, DateTimeStyles.None, out var endTime))
                 {
                     await RespondAsync("L'erreur entrée pour l'argument `fin` n'existe pas. Une date valide est attendue au format `dd/mm/yyyy hh:ii`", ephemeral: true);
                     return;
                 }
                 Logger.LogDebug("Date: " + endTime.ToString());
                 Logger.LogDebug("Je redige!");
-                await RespondAsync($"Vous avez commencé un évenement avec {winnerCount} vainqueur et d'une durée de {(endTime-DateTime.Now).Days} jours", ephemeral: true);
+                await RespondAsync($"Vous avez commencé un évenement avec {winnerCount} vainqueur et d'une durée de {(endTime - DateTime.Now).Days} jours", ephemeral: true);
                 Logger.LogDebug("Message envoyée!");
                 //Super unique id
                 var interac = new ComponentBuilder()
@@ -61,8 +62,9 @@ namespace DevCommuBot.Commands
             }
             return;
         }
+
         [SlashCommand("giveawayreroll", "Reroll un giveaway"), RequireUserPermission(GuildPermission.Administrator)]
-        public async Task GiveawayReroll() 
+        public async Task GiveawayReroll()
         {
             await RespondAsync("Comming soon!");
         }

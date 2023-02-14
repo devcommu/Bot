@@ -20,10 +20,12 @@ namespace DevCommuBot.Data.Models.Forums
         /// Forum's main topic
         /// </summary>
         public string Name { get; set; }
+
         /// <summary>
         /// Forum's name with spaces or other
         /// </summary>
         public string DisplayName { get; set; }
+
         public ulong ChannelId { get; set; }
 
         /// <summary>

@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 using DevCommuBot.Data.Models.Giveaways;
@@ -26,6 +24,7 @@ namespace DevCommuBot.Services
         public bool IsGiveawayWaiting { get; set; } = false;
         public readonly Discord.Color Color = new(142, 190, 246);
         public readonly CultureInfo Culture;
+
         public GiveawayService(IServiceProvider services)
         {
             Database = services.GetRequiredService<DataService>();
@@ -42,11 +41,11 @@ namespace DevCommuBot.Services
             var msg = msgComp.Message;
             var giveaway = await Database.GetGiveaway(msg.Id);
             var user = msgComp.User;
-            
+
             if (giveaway is not null)
             {
                 var account = await Database.ForceGetAccount(user.Id);
-                if(account.AllowGiveaway is false)
+                if (account.AllowGiveaway is false)
                 {
                     _ = msgComp.RespondAsync("Vous êtes interdit de giveaway!", ephemeral: true);
                     return;
@@ -57,7 +56,7 @@ namespace DevCommuBot.Services
                     _ = msgComp.RespondAsync("Ce giveaway n'a toujours pas commencé!", ephemeral: true);
                     return;
                 }
-                if(giveaway.State == GiveawayState.ENDED)
+                if (giveaway.State == GiveawayState.ENDED)
                 {
                     _ = msgComp.RespondAsync("Ce giveaway est terminé depuis le " + giveaway.EndAt.ToString(Culture), ephemeral: true);
                     return;
@@ -91,17 +90,19 @@ namespace DevCommuBot.Services
         {
             await CheckGiveaways();
         }
+
         private async Task CheckGiveaways()
         {
             var giveaways = await Database.GetRunningGiveaways();
             var time = DateTime.Now;
             if (giveaways.Count == 0)
                 return;
-            foreach(var giveaway in giveaways.Where(g=>g.EndAt < time))
+            foreach (var giveaway in giveaways.Where(g => g.EndAt < time))
             {
                 await EndGiveaway(giveaway);
             }
         }
+
         private async Task CheckForgotten()
         {
             var giveaways = await Database.GetRunningGiveaways();
@@ -111,7 +112,7 @@ namespace DevCommuBot.Services
             var time = DateTime.Now;
             foreach (var giveaway in giveaways)
             {
-                if(giveaway.EndAt < time)
+                if (giveaway.EndAt < time)
                 {
                     //Should have been finished
                     Logger.LogDebug("Ended giveaway found still running!");
@@ -119,11 +120,12 @@ namespace DevCommuBot.Services
                 }
             }
         }
+
         private async Task EndGiveaway(Giveaway giveaway)
         {
             //Ending giveaway
             var originalMessage = await Utils.GetGuild().GetTextChannel(giveaway.ChannelId).GetMessageAsync(giveaway.MessageId) as IUserMessage;
-            if(originalMessage is null)
+            if (originalMessage is null)
             {
                 Logger.LogWarning("Giveaway message not found!");
                 Utils.SendLog("Erreur Giveaway", $"Le message du giveaway n'a pas été trouvé! (id: {giveaway.MessageId}) dans le salon: {giveaway.ChannelId}\n> A titre d'information le giveaway n'est toujours pas finit. Il continuera de tourner jusqu'à ce que le message soit trouvé.");
@@ -131,12 +133,13 @@ namespace DevCommuBot.Services
             }
             //Modifying message to let know users that giveaway ended
             Logger.LogDebug("On modifie le message pour empêcher les utilisateurs de rentrer dans le giveaway");
-            await originalMessage.ModifyAsync(m => {
+            await originalMessage.ModifyAsync(m =>
+            {
                 m.Content = "⏳ Le tirage du giveaway est en cours! ⌛";
                 m.Components = null;
             });
             var nbParticipants = giveaway.Participants.Count;
-            if(nbParticipants == 0)
+            if (nbParticipants == 0)
             {
                 giveaway.State = GiveawayState.ENDED;
                 await Database.UpdateGiveaway(giveaway);
@@ -167,7 +170,7 @@ namespace DevCommuBot.Services
                 }
             }
             string winnersString = "";
-            foreach(var winId in winners)
+            foreach (var winId in winners)
             {
                 winnersString += $"<@{winId}>\n";
             }
@@ -197,17 +200,18 @@ namespace DevCommuBot.Services
                 .WithCurrentTimestamp()
                 .WithFooter("Merci aux participants!")
                 .Build();
-            await originalMessage.ReplyAsync("Bravo à eux: \n"+winnersString, embed: embed);
+            await originalMessage.ReplyAsync("Bravo à eux: \n" + winnersString, embed: embed);
             await originalMessage.ModifyAsync(m => m.Content = "Ce giveaway est terminé!");
             giveaway.WinnersId = winners;
             giveaway.State = GiveawayState.ENDED;
             await Database.UpdateGiveaway(giveaway);
         }
+
         public async Task ReRollWinner(Giveaway giveaway, ulong userRemoved)
         {
             if (!giveaway.WinnersId.Contains(userRemoved))
             {
-                Utils.SendLog($"Erreur Reroll giveaway N°{giveaway.Id}", $"Tentative de reroll en retirant l'utilisateur: {userRemoved} cependant il n'avait pas gagné"); 
+                Utils.SendLog($"Erreur Reroll giveaway N°{giveaway.Id}", $"Tentative de reroll en retirant l'utilisateur: {userRemoved} cependant il n'avait pas gagné");
             }
             var rnd = new Random();
             var winner = giveaway.Participants[rnd.Next(giveaway.Participants.Count)];

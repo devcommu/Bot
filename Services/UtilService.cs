@@ -48,6 +48,7 @@ namespace DevCommuBot.Services
 
         //Todo: no need to have cooldown
         public readonly Dictionary<ulong, long> CreateroleCooldown = new();
+
         public readonly RiotGamesApi Riot;
         private readonly IConfigurationRoot _config;
 
@@ -59,7 +60,7 @@ namespace DevCommuBot.Services
             database = services.GetRequiredService<DataService>();
             Riot = RiotGamesApi.NewInstance(_config["riotToken"]);
         }
-        
+
         public async Task MemberUnboosted(SocketGuildUser member)
         {
             var roles = "";
@@ -124,7 +125,7 @@ namespace DevCommuBot.Services
                 return;
             _ = CreateBoosterAdvantage(user, member);
         }
-        
+
         internal async Task CreateBoosterAdvantage(User user, SocketGuildUser member)
         {
             user.BoosterAdvantage = new BoosterAdvantage
@@ -184,6 +185,7 @@ namespace DevCommuBot.Services
             }
             return forumDb;
         }
+
         /// <summary>
         /// Is the channel a forum channel (avoid custom channels)
         /// </summary>
@@ -241,6 +243,7 @@ namespace DevCommuBot.Services
 
         public SocketTextChannel GetStarboardChannel()
             => _client.GetChannel(CHANNEL_STARBOARD_ID) as SocketTextChannel;
+
         /// <summary>
         /// Send log to the discord channel
         /// </summary>
@@ -259,6 +262,7 @@ namespace DevCommuBot.Services
                 .Build();
             GetLogChannel().SendMessageAsync(embed: embed);
         }
+
         public void SendLog(EmbedBuilder embed)
         {
             embed = embed.WithCurrentTimestamp()
@@ -267,6 +271,7 @@ namespace DevCommuBot.Services
                 embed = embed.WithFooter("DevCommunity");
             GetLogChannel().SendMessageAsync(embed: embed.Build());
         }
+
         /// <summary>
         /// DEPRECATED, use <see cref="DataServices.GetAccount(SocketGuildUser)"/> instead
         /// </summary>

@@ -42,6 +42,7 @@ namespace DevCommuBot.Interactions
                 case "discord-games":
                     role = Utils.GetGuild().GetRole(UtilService.ROLE_DISCORDGAMES_ID);
                     break;
+
                 case "giveaways":
                     role = Utils.GetGuild().GetRole(UtilService.ROLE_GIVEAWAYS_ID);
                     break;
